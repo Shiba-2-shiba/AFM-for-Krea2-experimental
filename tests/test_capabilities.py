@@ -1,5 +1,4 @@
 from dataclasses import FrozenInstanceError, replace
-from types import SimpleNamespace
 
 import pytest
 import torch

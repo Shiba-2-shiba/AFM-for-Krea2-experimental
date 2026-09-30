@@ -15,6 +15,11 @@ implementation or the Krea2T Enhancer implementation at runtime.
   public model, attention, sampler and wrapper API reference. No model forward
   or global monkey patch is included in this package. Downloaded source used
   for local contract checks is excluded from the repository under `.reference/`.
+- Official ComfyUI workflow templates (repository-level MIT):
+  <https://github.com/Comfy-Org/workflow_templates>. API examples are newly
+  assembled from the Krea2 Turbo standard-node dataflow; the full upstream
+  frontend/subgraph JSON is not redistributed. Source snapshot hash is in
+  `docs/validation.md`.
 
 The supplied implementation plan retains its own provenance. The LICENSE
 below applies to the newly written implementation, tests and documentation.
