@@ -1,6 +1,6 @@
 # Krea2 AFM カスタムノード Implementation Plan — 改訂2
 
-> **For agentic workers:** REQUIRED SUB-SKILL: 実装時は `superpowers:executing-plans` または `superpowers:subagent-driven-development` を使い、タスク単位で進める。チェックボックスは実施状況の記録に使う。今回は計画書の改訂であり、実装は未着手。
+> **For agentic workers:** REQUIRED SUB-SKILL: 実装時は `superpowers:executing-plans` または `superpowers:subagent-driven-development` を使い、タスク単位で進める。チェックボックスは実施状況の記録に使う。再開時は `handoff.md` と現在の実装状況を先に読む。
 
 **Goal:** `Shiba-2-shiba/AFM-for-anima-experimental` のAFMの考え方と数値処理を利用し、Krea 2の推論時Attentionを周波数編集できる、独立したComfyUIカスタムノードを設計・実装する。
 
@@ -14,9 +14,9 @@
 
 **改訂:** 2026-09-30、改訂2。前版を本書で置き換える。`ComfyUI-Krea2T-Enhancer` の全Key正規化とQ／K拡張を参考に、計算方式・backend選択・数値対照・段階的採用を更新した。
 
-**状態:** ソース解析に基づく実装前の計画。実モデルの推論、GPU上の速度・VRAM測定、生成品質の確認は未実施。
+**状態:** Task 0–4とTask 5のオフラインツールを実装済み。実モデルの推論、GPU上の速度・VRAM測定、生成品質の確認は未実施。
 
-**実装進捗追記（2026-09-30）:** Task 0–1のローカル診断版を実装。今回のユーザー指定により実モデル検証は行わない。GPU中間判定とTask 2以降は未着手。検証根拠・差分判断は `docs/implementation-status.md` を参照。以下の設計仕様は原案として保持する。
+**実装進捗追記（2026-09-30、再開後）:** manual/augmented編集、メモリ制御、branch保持、atomic fallback、ノード、API/UI例、集計・matrix runnerを実装。runnerの過去ログ混同とdtype証拠混在を修正し、CPU/上流ソース契約テスト241件PASS、GPU1件は除外。今回のユーザー指定により実モデル検証は行わない。GPU中間判定は対応・性能・profile採用の条件として残し、実装とCPU検証は進める。検証根拠・残課題は `docs/implementation-status.md` を参照。
 
 ## Global Constraints
 
@@ -395,14 +395,14 @@ wrapperはComfyUIのexecutorを第1引数に取り、元の引数を維持して
 
 `apply_spatial_filter` は `[B,H,I,C]` を受け、I軸をgridへ並べ替えて共通のAを適用し、同形状のFP32を返す。logits用wrapperのCはT、augmented用のCはd。同じ周波数mask・FFT規約を共有する。
 
-- [ ] `test_curve_schedule_endpoints`：s=.1でu=0なら `(1.1,1.0)`、u=1なら `(1.0,1.1)`、u=.5なら `(1.05,1.05)` を近似比較する。
-- [ ] `test_fft_identity_rectangular`：grid `(3,5)`、FP32でalphaが両方1なら、入力との最大差 `<1e-5`。
-- [ ] `test_preserve_dc`：空間平均が元の値を `atol=1e-5, rtol=1e-5` で維持する。
-- [ ] `test_frequency_selectivity`：既知のLF/HF信号について、選択した周波数側だけがgainに応じて変わる。非正方形・非2の累乗のgridを含める。
-- [ ] `test_common_operator_linearity`：同じAについて `A(a*x+b*y)` と `a*A(x)+b*A(y)` をFP32で比較する。Qとlogitsで別のmask実装を使っていないことも確認する。
+- [x] `test_curve_schedule_endpoints`：s=.1でu=0なら `(1.1,1.0)`、u=1なら `(1.0,1.1)`、u=.5なら `(1.05,1.05)` を近似比較する。
+- [x] `test_fft_identity_rectangular`：grid `(3,5)`、FP32でalphaが両方1なら、入力との最大差 `<1e-5`。
+- [x] `test_preserve_dc`：空間平均が元の値を `atol=1e-5, rtol=1e-5` で維持する。
+- [x] `test_frequency_selectivity`：既知のLF/HF信号について、選択した周波数側だけがgainに応じて変わる。非正方形・非2の累乗のgridを含める。
+- [x] `test_common_operator_linearity`：同じAについて `A(a*x+b*y)` と `a*A(x)+b*A(y)` をFP32で比較する。Qとlogitsで別のmask実装を使っていないことも確認する。
 - [ ] `python -m pytest tests/test_spectral.py -q` で失敗を確認する。
-- [ ] 元実装のmask・FFT・DC処理を必要な範囲だけ移植する。beta/gamma付きentropy gateは入れない。
-- [ ] 同コマンドで全PASSを確認する。
+- [x] 数学仕様からmask・FFT・DC処理を新規実装する（未ライセンスのソースはコピーしない）。beta/gamma付きentropy gateは入れない。
+- [x] 同コマンドで全PASSを確認する。
 - [ ] `feat: add spatial AFM spectral kernel` としてcommitする。
 
 ### Task 3：joint softmax・分割計算・メモリ制御
@@ -415,15 +415,15 @@ wrapperはComfyUIのexecutorを第1引数に取り、元の引数を維持して
 
 `joint_image_rows` のQKVはhead形式 `[B,H,N,D]`、戻り値は `[B,H,I,D]`。上流ですでにGQA展開済みなら再展開しない。内部のlogits／softmaxはFP32、戻り値はVのdtypeにする。
 
-- [ ] `tests/reference.py` に `dense_joint_image_rows(q, k, v, layout, config, progress, scale) -> Tensor` を作る。画像→テキスト領域だけを編集して全Keyでsoftmaxする。実モデルkernelから呼び出せない配置にする。
-- [ ] `test_chunked_matches_dense_joint`：FP32、B=2、H=6、grid `(3,5)`、T=5、D=8で `atol=1e-5, rtol=1e-5`。head/queryの端数chunkも検証する。
-- [ ] `test_does_not_normalize_text_separately`：テキストと画像Keyの両方が有効なfixtureで、結果がdense jointと一致し、text-only softmaxの結果と一致しない。
-- [ ] `test_does_not_double_gqa`：すでに展開済みのQ/K/Vでhead数が増えない。
-- [ ] `test_memory_dimensions`：B=1,H=48,I=4096,T=512の全joint logits見積もりは `3888.0 MiB`。作業予算を超える場合、FFT前にchunk縮小または明示的に停止する。
-- [ ] `test_failure_does_not_return_partial_edit`：chunk途中で例外／NaNを注入し、部分編集を返さない。
+- [x] `tests/reference.py` に `dense_joint_image_rows(q, k, v, layout, config, progress, scale) -> Tensor` を作る。画像→テキスト領域だけを編集して全Keyでsoftmaxする。実モデルkernelから呼び出せない配置にする。
+- [x] `test_chunked_matches_dense_joint`：FP32、B=2、H=6、grid `(3,5)`、T=5、D=8で `atol=1e-5, rtol=1e-5`。head/queryの端数chunkも検証する。
+- [x] `test_does_not_normalize_text_separately`：テキストと画像Keyの両方が有効なfixtureで、結果がdense jointと一致し、text-only softmaxの結果と一致しない。
+- [x] `test_does_not_double_gqa`：すでに展開済みのQ/K/Vでhead数が増えない。
+- [x] `test_memory_dimensions`：B=1,H=48,I=4096,T=512の全joint logits見積もりは `3888.0 MiB`。作業予算を超える場合、FFT前にchunk縮小または明示的に停止する。
+- [x] `test_failure_does_not_return_partial_edit`：chunk途中で例外／NaNを注入し、部分編集を返さない。
 - [ ] `python -m pytest tests/test_joint_attention.py tests/test_memory.py -q` で失敗を確認する。
-- [ ] head分割とQuery行分割を実装し、FFTのQuery軸は全gridを維持する。mask非None・causal条件は初版で編集せず理由を返す。
-- [ ] 同コマンドで全PASSを確認する。密な全joint配列をproduction pathで確保しないことをコードレビューする。
+- [x] head分割とQuery行分割を実装し、FFTのQuery軸は全gridを維持する。mask非None・causal条件は初版で編集せず理由を返す。
+- [x] 同コマンドで全PASSを確認する。密な全joint配列をproduction pathで確保しないことをコードレビューする。
 - [ ] `feat: add chunked Krea2 joint AFM attention` としてcommitする。
 
 ### Task 3A：Q／K拡張kernel・方式選択
@@ -439,18 +439,18 @@ wrapperはComfyUIのexecutorを第1引数に取り、元の引数を維持して
 - `strip_augmented_heads(out: Tensor, original_head_dim: int, heads: int, merged: bool) -> Tensor`：head形式／merged形式ともhead境界を保持する。
 - `select_implementation(config: AFMConfig, runtime_signature: dict, profiles: list[dict]) -> BackendSelection`：pureな事前選択。runtime_signatureは3.4.4の環境情報と実際の形状を含む。
 
-- [ ] `test_augmented_logits_match_direct_fft`：B=2,H=3,grid=(3,5),T=4,d=8、alpha=(1.08,1.14)で、Q/K拡張の内積と直接FFTしたlogitsが `atol=1e-5,rtol=1e-5` で一致する。画像Key列のlogitsは同許容誤差内で元と一致する。
-- [ ] `test_augmented_output_matches_dense_and_manual`：全Key SDPA出力が両referenceに同許容誤差で一致し、text-only softmaxとは一致しない。head/query端数chunkを含める。
-- [ ] `test_original_effective_scale_preserved`：元の明示scale=0.2と未指定相当のd**-0.5を試し、拡張dimからの再計算を検出する。
-- [ ] `test_strip_per_head_not_flat_prefix`：H=3,d=8でhead別に異なる値を使い、両出力形式で正しいhead順・値が復元される。追加V次元はゼロである。
-- [ ] `test_augmented_zero_is_numerical_control`：alpha=1でも拡張経路を通ったことを記録し、zero originalの完全passthroughと区別する。
-- [ ] `test_fft_before_query_chunking`：Query chunk幅が変わっても同じ全grid FFTを使う。`test_sdpa_call_is_bounded`：全callが設定head/query上限以下、Key長は常にN。
-- [ ] `test_mask_causal_and_unsupported_scale_rejected`：mask非None、causal、scaleを渡せないbackendを黙って受け入れない。
-- [ ] `test_auto_unqualified_uses_manual`、`test_auto_profile_scope_exact`：空profile、dtype/GPU/ComfyUI変更、検証範囲外のT/I/batchではmanual、合格profile内だけaugmented。forced augmentedの未対応はエラー。
-- [ ] `test_augmented_memory_counts_math_and_retained_qkv`：mathのFP32中間配列とbaseline後まで保持するQKVを含める。表の4 MiB／4.5 MiBも検算する。
+- [x] `test_augmented_logits_match_direct_fft`：B=2,H=3,grid=(3,5),T=4,d=8、alpha=(1.08,1.14)で、Q/K拡張の内積と直接FFTしたlogitsが `atol=1e-5,rtol=1e-5` で一致する。画像Key列のlogitsは同許容誤差内で元と一致する。
+- [x] `test_augmented_output_matches_dense_and_manual`：全Key SDPA出力が両referenceに同許容誤差で一致し、text-only softmaxとは一致しない。head/query端数chunkを含める。
+- [x] `test_original_effective_scale_preserved`：元の明示scale=0.2と未指定相当のd**-0.5を試し、拡張dimからの再計算を検出する。
+- [x] `test_strip_per_head_not_flat_prefix`：H=3,d=8でhead別に異なる値を使い、両出力形式で正しいhead順・値が復元される。追加V次元はゼロである。
+- [x] `test_augmented_zero_is_numerical_control`：alpha=1でも拡張経路を通ったことを記録し、zero originalの完全passthroughと区別する。
+- [x] `test_fft_before_query_chunking`：Query chunk幅が変わっても同じ全grid FFTを使う。`test_sdpa_call_is_bounded`：全callが設定head/query上限以下、Key長は常にN。
+- [x] `test_mask_causal_and_unsupported_scale_rejected`：mask非None、causal、scaleを渡せないbackendを黙って受け入れない。
+- [x] `test_auto_unqualified_uses_manual`、`test_auto_profile_scope_exact`：空profile、dtype/GPU/ComfyUI変更、検証範囲外のT/I/batchではmanual、合格profile内だけaugmented。forced augmentedの未対応はエラー。
+- [x] `test_augmented_memory_counts_math_and_retained_qkv`：mathのFP32中間配列とbaseline後まで保持するQKVを含める。表の4 MiB／4.5 MiBも検算する。
 - [ ] `python -m pytest tests/test_augmented_attention.py tests/test_selection.py tests/test_memory.py -q` で失敗を確認する。
-- [ ] 共通FFTと元scaleを使って実装する。DeltaQはFP32で求め、SDPA直前だけactivation dtypeへ変換する。`qualified_profiles.json` の初期値は `[]`。
-- [ ] 同コマンドで全PASSを確認する。CPU SDPA成功をGPU fused対応と記載しない。
+- [x] 共通FFTと元scaleを使って実装する。DeltaQはFP32で求め、SDPA直前だけactivation dtypeへ変換する。`qualified_profiles.json` の初期値は `[]`。
+- [x] 同コマンドで全PASSを確認する。CPU SDPA成功をGPU fused対応と記載しない。
 - [ ] `feat: add augmented QK AFM candidate and guarded selection` としてcommitする。
 
 ### Task 4：ノード統合・branch・競合・passthrough
@@ -461,17 +461,17 @@ wrapperはComfyUIのexecutorを第1引数に取り、元の引数を維持して
 
 **Produces:** `install_krea2_afm(model_patcher, config: AFMConfig)`。`Krea2AFMModelPatch` はMODELを受け取り、パッチ済みMODELを返す。
 
-- [ ] `test_zero_original_installs_no_attention_override`：off／既定のzero strengthで元のAttention経路が保持される。
-- [ ] `test_positive_only_layouts`：`[0]`、`[1]`、`[1,0]`、`[0,1]`、batch>1、metadata欠落を検証する。metadata欠落をpositiveと決めつけない。
-- [ ] `test_unselected_branch_and_text_rows_bitwise_equal`：manual／augmentedの両方で、同じ呼び出し内のbaselineと出力を `torch.equal` で比較する。未選択branchとテキストQuery行を保持する。
-- [ ] `test_input_model_not_modified`：同じloaderからAFM modelと通常modelに分岐し、通常modelの設定／出力を保持する。
-- [ ] `test_duplicate_afm_rejected`、`test_existing_attention_patch_rejected`：二重AFM、別override、post_input/QKV/outputパッチを明示的なエラーにする。
-- [ ] `test_fallback_reuses_baseline_once`：両kernelの途中chunkにOOM／NaNを注入し、fallback_originalでは保持済みbaselineを返して部分編集を破棄する。元backendは1回だけ、containerは1回だけ消費される。raiseでは例外を再送出し、別kernelを無断で再試行しない。
-- [ ] `test_zero_control_precedence`：strength=0のmanual／augmented指定はimplementationより優先し、originalだけがoverrideなしになる。
-- [ ] `test_normal_augmented_path_has_no_dense_diagnostics`：診断offではlogits再生成を呼ばない。診断onでも指定head/queryの上限を守る。
+- [x] `test_zero_original_installs_no_attention_override`：off／既定のzero strengthで元のAttention経路が保持される。
+- [x] `test_positive_only_layouts`：`[0]`、`[1]`、`[1,0]`、`[0,1]`、batch>1、metadata欠落を検証する。metadata欠落をpositiveと決めつけない。
+- [x] `test_unselected_branch_and_text_rows_bitwise_equal`：manual／augmentedの両方で、同じ呼び出し内のbaselineと出力を `torch.equal` で比較する。未選択branchとテキストQuery行を保持する。
+- [x] `test_input_model_not_modified`：同じloaderからAFM modelと通常modelに分岐し、通常modelの設定／出力を保持する。
+- [x] `test_duplicate_afm_rejected`、`test_existing_attention_patch_rejected`：二重AFM、別override、post_input/QKV/outputパッチを明示的なエラーにする。
+- [x] `test_fallback_reuses_baseline_once`：両kernelの途中chunkにOOM／NaNを注入し、fallback_originalでは保持済みbaselineを返して部分編集を破棄する。元backendは1回だけ、containerは1回だけ消費される。raiseでは例外を再送出し、別kernelを無断で再試行しない。
+- [x] `test_zero_control_precedence`：strength=0のmanual／augmented指定はimplementationより優先し、originalだけがoverrideなしになる。
+- [x] `test_normal_augmented_path_has_no_dense_diagnostics`：診断offではlogits再生成を呼ばない。診断onでも指定head/queryの上限を守る。
 - [ ] `python -m pytest tests/test_node_patch.py tests/test_branch_preservation.py -q` で失敗を確認する。
-- [ ] V3 schemaと設置処理を実装する。Animaのscope名 `encoder_equivalent` と、Anima固有のcall index推定を持ち込まない。
-- [ ] 同コマンドで全PASSを確認し、`python -m pytest tests -q` と `python -m compileall -q afm nodes.py __init__.py` を実行する。GPU testsはopt-in markerで通常CPU実行から除外する。
+- [x] V3 schemaと設置処理を実装する。Animaのscope名 `encoder_equivalent` と、Anima固有のcall index推定を持ち込まない。
+- [x] 同コマンドで全PASSを確認し、`python -m pytest tests -q` と `python -m compileall -q afm nodes.py __init__.py` を実行する。GPU testsはopt-in markerで通常CPU実行から除外する。
 - [ ] `feat: expose Krea2 AFM model patch node` としてcommitする。
 
 ### Task 5：実モデル比較・workflow・実験report
@@ -482,18 +482,21 @@ wrapperはComfyUIのexecutorを第1引数に取り、元の引数を維持して
 
 **Interface:** `compare_attention_outputs(candidate: Tensor, reference: Tensor, candidate_zero: Tensor, reference_zero: Tensor) -> ValidationMetrics` を `scripts/compare_attention_kernels.py` に置き、6.2の定義で計算する。実モデルではサーバー内の診断hookが同じQKVから比較し、API runnerへ数値だけ渡す。外部runnerからサーバーのTensorへアクセスできると仮定しない。
 
-- [ ] `test_summary_requires_edited_calls`：画像が保存されてもAFMの `edited_calls=0` なら「編集成功」にしない。
-- [ ] `test_compare_pairs_are_unambiguous`：run間比較keyを `step_index / model_eval_index / block_index / branch` とし、重複・欠損を黙って平均しない。
-- [ ] `test_numeric_metrics_and_zero_effect`：既知のTensorで6.2の指標を検算し、効果差が数値ノイズ以下なら合格ではなく判定不能にする。
-- [ ] `test_profile_requires_correctness_and_benchmark`：画像保存だけ、全fallback、性能未測定、数値閾値外のreportから採用profileを作れない。
+- [x] `test_summary_requires_edited_calls`：画像が保存されてもAFMの `edited_calls=0` なら「編集成功」にしない。
+- [x] `test_compare_pairs_are_unambiguous`：run間比較keyを `step_index / model_eval_index / block_index / branch` とし、重複・欠損を黙って平均しない。
+- [x] `test_numeric_metrics_and_zero_effect`：既知のTensorで6.2の指標を検算し、効果差が数値ノイズ以下なら合格ではなく判定不能にする。
+- [x] `test_profile_requires_correctness_and_benchmark`：画像保存だけ、全fallback、性能未測定、数値閾値外のreportから採用profileを作れない。
 - [ ] `python -m pytest tests/test_reports.py tests/test_validation_metrics.py -q` で失敗を確認し、集計を実装してPASSを確認する。
 - [ ] cloudの `/object_info` と実際の標準workflowからinputsを確認し、API JSONとUI JSONを作る。存在しないノード名やsocketを推測で使わない。
-- [ ] モデル名やComfyUI URLを引数で指定するrunnerを作る。実行例は `python scripts/run_afm_matrix.py --comfy-url http://127.0.0.1:8188 --matrix examples/validation_matrix.json --out-dir outputs/krea2_afm`。この `examples/validation_matrix.json` も作成する。
+- [x] モデル名やComfyUI URLを引数で指定するrunnerを作る。実行例は `python scripts/run_afm_matrix.py --comfy-url http://127.0.0.1:8188 --matrix examples/validation_matrix.json --out-dir outputs/krea2_afm`。この `examples/validation_matrix.json` も作成する。
 - [ ] 6節の順でクラウドGPU検証を実行する。診断版branchは `diagnostic/krea2-afm`、編集版は `feat/krea2-afm-edit`、Q/K拡張の追加試験は `feat/krea2-afm-augmented` を候補とする。
 - [ ] 同一QKVのFP32／FP16／BF16差分を6.2で測る。続いて6.3のwarm比較を実施し、採用条件に合格したprofileだけ `afm/qualified_profiles.json` に追加する。自動登録で受入閾値を緩めない。
 - [ ] batch=1、まず小解像度、次に768正方形、長方形、可能なら1024で測定する。`torch.cuda.max_memory_allocated()`、reserved memory、wall timeをmanifestに入れる。
-- [ ] 未確認の量子化／backendを対応済みにしない。実績のある設定だけをREADMEの初期例にする。
+- [x] 未確認の量子化／backendを対応済みにしない。実績のある設定だけをREADMEの初期例にする。
 - [ ] `docs: add Krea2 AFM workflows and validation results` としてcommitする。
+
+
+再開後の記録: Task 2–4とTask 5のオフライン実装/CPU検証を完了。未チェックのRED履歴はこの再開で再実施しておらず、実モデル項目は対象外のため未実施。タスク別commit名は原案であり、編集実装はfeat/krea2-afm-edit上の1つのローカルcheckpointへまとめる。API/UI例は静的確認のみ。
 
 ## 6. クラウドGPUでの検証順
 
@@ -573,13 +576,13 @@ profileには測定manifestと数値reportの参照を付け、ComfyUI／PyTorch
 
 初版の完了には以下を必要とする。
 
-- [ ] CPUのdense／manual／augmented比較、DC／長方形／明示scale／head単位出力復元／scope／branch／container／状態分離テストがPASS。
+- [x] CPUのdense／manual／augmented比較、DC／長方形／明示scale／head単位出力復元／scope／branch／container／状態分離テストがPASS。
 - [ ] 実際のKrea2 Turboでdiscover／observe／zero original／編集の4経路を確認。
 - [ ] 少なくとも1種類の長方形入力と、RawのCFG branch試験を確認。
 - [ ] 実ログで適用block・画像範囲・編集差を確認し、全fallbackで動いている状態を成功と判定しない。
-- [ ] 対応した量子化形式とbackend、未確認の形式を分けた表がある。
+- [x] 対応した量子化形式とbackend、未確認の形式を分けた表がある（実機確認済みはなし。docs/validation.md参照）。
 - [ ] 実測VRAM・実行時間と、baseline／manual zero／augmented zero／両AFM方式の比較がある。
-- [ ] autoの未検証環境はmanual。augmentedの採用有無と数値／性能の根拠を明記する。未達の候補を標準高速化済みとしない。
+- [x] autoの未検証環境はmanual。augmentedの採用有無と数値／性能の根拠を明記する。未達の候補を標準高速化済みとしない。
 - [ ] API/UI workflowを実際にロードして実行できる。
 
 後続候補はentropy適応、reference画像対応、画像→画像領域の周波数編集、baseline全体計算の削減、専用backend対応／融合kernelによる高速化。entropyやtoken別gainを追加する場合は、Q/K拡張の等価性を再検討する。これらは初版の検証結果を踏まえ、別タスクとして設計する。

@@ -1,83 +1,118 @@
 # Krea2 AFM (experimental)
 
-ComfyUI native Krea2 向けの独立した診断用カスタムノードです。
-**現在は計画書の Task 0–1。Attention の編集機能は未実装です。**
-Anima AFM や Krea2T Enhancer をインストールする必要はありません。
+ComfyUIのネイティブKrea2向けに、画像Query → テキストKeyのAttention logitsを
+空間周波数で編集するカスタムノードです。画像・テキストを合わせた全Keyで正規化します。
+Anima AFM / Krea2T Enhancerのインストールは不要です。
 
-モデルを使った実機検証は今回の対象外です。CPU テストは API 契約・
-状態分離・layout 検証の証拠であり、GPU 対応・高速化・画質改善を示しません。
+**編集機能を実装済みです。実モデルによる生成・GPU性能・画質は未検証です。**
+CPUの小規模Tensorで、直接計算・分割manual・Q/K拡張augmentedの数値比較と
+CFG行保持・fallbackを検証しています。CPUでの一致は実モデル/GPUの保証ではありません。
 
-## 対応の前提
+## インストール
 
-- ComfyUI のネイティブ `comfy.ldm.krea2.model.SingleStreamDiT`。
-- V3 ノード API、`OUTER_SAMPLE` / `DIFFUSION_MODEL` wrapper、`post_input`。
-- ソース確認基準: ComfyUI `9d80841aa1990305cc7a280c5ea505f317efcc2d`。
-  これは実機確認済み最低版ではありません。実行時にも必要 API を検査します。
-- 通常の4D latent、時間軸が1の5D latent。reference / 複数フレームは対象外。
-- 他の Attention override、post_input、QKV、Attention 出力パッチは競合エラー。
+このフォルダーをComfyUIの `custom_nodes/AFM-for-Krea2-experimental` に配置し、
+ComfyUIを再起動します。既存環境のPyTorchを使用します。追加ライブラリは不要です。
 
-## インストールとテスト
+ソース確認基準はComfyUI `9d80841aa1990305cc7a280c5ea505f317efcc2d`。
+V3ノード、OUTER_SAMPLE / DIFFUSION_MODEL wrapper、post_input、およびnative
+`SingleStreamDiT` を機能検出します。実機確認済みの最低版という意味ではありません。
 
-このフォルダーを ComfyUI の `custom_nodes/AFM-for-Krea2-experimental` に配置し、
-ComfyUI を再起動します。既存の ComfyUI 環境の PyTorch を使用します。
-このパッケージのために PyTorch や GPU ドライバーを更新する必要はありません。
+## 使い方
 
-CPU テストは PyTorch と pytest が入った環境で次のように実行します。
-
-```console
-python -m pytest tests -q
-python -m compileall -q afm nodes.py __init__.py
-```
-
-ノード、ログ、後日の実機確認については [検証手順](docs/validation.md) を参照。
-[実装状況](docs/implementation-status.md) と [第三者資料](NOTICE.md) も同梱しています。
-
-## 使用方法
-
-モデルローダーの MODEL と KSampler の MODEL の間に **Krea2 AFM Model Patch**
-を接続します。最初は `discover`、次に `observe` / `block_scope=0-3`。
+モデルローダーのMODELとKSamplerのMODELの間に **Krea2 AFM Model Patch** を接続します。
+通常LoRAがある場合は、そのMODEL出力の後へ接続します。
 
 | モード | 動作 |
 | --- | --- |
-| `off` | clone を返すだけ。診断 hook / Attention override を追加しない |
-| `discover` | 全本体 block を記録。画像・テキスト出力は元 backend の戻り値そのもの |
-| `observe` | `block_scope` に指定した本体 block を記録。同じく出力を変更しない |
+| `off` | cloneのみ返し、AFMのhookを追加しない |
+| `discover` | txtfusion後の全本体blockのlayout/backendを記録。出力を変更しない |
+| `observe` | 指定blockを観測。出力を変更しない |
+| `edit` | 選択したCFG branchの画像行をAFMで置換する |
 
-`branch_mode` と進行区間は、今後の編集対象となる行・区間をログへ示すための
-設定です。診断版では選択・非選択を含む Attention 出力全体を変更しません。
-`spectral_diag` は off 固定です。`edit` は API 経由で指定しても明示エラーになります。
+ノード既定は `observe`。編集を試す設定例は `mode=edit`, `implementation=manual`,
+`strength=0.05`, `block_scope=0`, `branch_mode=positive_only` です。
+最適設定や画質改善を確認した値ではありません。
 
-既定のログ先は ComfyUI の `output/krea2_afm/diagnostics.jsonl`。各 run に固有の
-`run_id` が付き、`run_start`、`attention`、`run_summary` を追記します。
-保存先は `krea2_afm/任意名.jsonl` の相対パスで指定します。専用フォルダーの外、
-絶対パス、`..`、解決後に外部を指すパスは拒否します。
-`jsonl_path` を空にするとファイル出力を無効化します。`debug_level=summary` は
-開始・集計をコンソールにも表示し、`verbose` は各呼び出しも表示します。
+| 設定 | 意味 |
+| --- | --- |
+| `implementation=manual` | 全Key正規化を保つFP32 logits/softmaxの分割基準実装 |
+| `implementation=augmented` | Q/K/V拡張と分割SDPAを使う実験経路。元のAttention scaleを維持 |
+| `implementation=auto` | 未検証環境ではmanual。出荷時の採用リストは空 |
+| `strength` | 0なら既定では元経路。正負の値で周波数gainを変更 |
+| `schedule=curve` | 進行度uに対してLF=1+s(1-u)、HF=1+su |
+| `cutoff / soft_mask / mask_width` | 正規化半径周波数の境界とcosine遷移幅 |
+| `preserve_dc` | 空間平均に対応するDC成分を維持 |
+| `block_scope` | `0-3`, `0,2`, `all` など。本体の実際のblock index |
+| `start_percent / end_percent` | 実際に渡されたsigma schedule上の編集区間 |
+| `head_chunk_size / query_chunk_size` | 分割上限。既定2 / 128。FFTは常に画像全grid |
+| `max_workspace_mib` | 追加・延長生存Tensorの保守的な見積もり予算。既定512 MiB |
+| `fail_mode` | `raise` は停止、`fallback_original` はその呼び出しの元出力へ戻す |
+| `augmented_precision` | SDPAにactivation dtypeを使うか比較用FP32を使うか |
 
-`fail_mode=raise` を推奨します。`fallback_original` は対象外 layout の診断を
-スキップして元の経路を使い、理由を記録します。元 backend 自体の例外は再試行せず
-伝播します。`edited_calls` はこの版では常に0です。
+予算不足ならhead/query chunkを縮小し、それでも不足なら `memory_guard`。
+見積もりは総VRAM上限ではありません。baseline自体が動く構成が前提です。
+途中のOOM・非有限値・例外では部分編集を返さず、別kernelへ自動再試行もしません。
 
-## API ワークフロー
+`strength=0, zero_strength_mode=original` はAFM hookを追加しません。
+`zero_strength_mode=manual / augmented` は指定方式の数値対照を強制し、
+`implementation` より優先します。元backendとbitwise同一のbaselineではありません。
 
-- [baseline](examples/krea2_afm_baseline_api.json): AFM ノードなし。
-- [discover](examples/krea2_afm_discover_api.json): 全本体 block の診断。
-- [observe](examples/krea2_afm_observe_api.json): block 0–3 の診断。
+## ログと比較診断
 
-これらは **API prompt JSON** です。ブラウザーへドラッグする UI workflow 形式では
-ありません。公式 Turbo ワークフローの標準ノード構成を参考に、512×512、固定seed、
-8 steps、CFG=1、Euler/simple としています。任意の LoRA / prompt enhancement は含みません。
-モデル名は例であり、インストール済みファイル名へ合わせる必要があります。
+既定のログ先はComfyUIの `output/krea2_afm/diagnostics.jsonl`。
+ノード入力には `krea2_afm/任意名.jsonl` を指定します。空欄でファイル出力を無効化。
+絶対パス、`..`、専用フォルダー外へ解決されるパスは拒否します。
 
-モデルやサーバーを使わずに JSON の参照関係を確認できます。
+各runには固有の `run_id` が付き、`run_start`, `attention`, `run_summary` を記録します。
+未計測値はnull。`edited_calls=0` や全fallbackを編集成功と扱いません。
+テキスト行・未選択branchは同一callのbaselineをそのまま保持しますが、編集が後続blockへ
+伝わるため、最終的なnegative予測全体が不変になるという意味ではありません。
+
+通常は `spectral_diag=off`, `compare_kernels=false`。必要時だけ有効化します。
+
+- `spectral_diag=sampled`: 指定step/block/headで、テキスト内softmaxのtop-K集中度の
+  HF比 `rho_text_conditional` とjoint softmaxの `text_attention_mass` を別々に記録。
+- `compare_kernels=true`: 同じQKVでmanual FP32とaugmented、および各zero対照を比較。
+  `effect_resolved=false` は効果を数値ノイズから分離できないことを示します。
+- `diagnostic_block_scope` は編集scopeとは独立。head数・query chunk・step間隔を制限できます。
+- `benchmark=true`: 将来のGPU検証時に、サーバープロセス内でCUDA同期・peak allocated/reserved・
+  生成時間と編集時間を測定。比較診断とは同時に有効化できません。CPUではCUDA値を記録しません。
+
+## ワークフローと検証ツール
+
+- [編集用UI workflow](examples/krea2_afm_edit_ui.json): ブラウザーへロードする形式。
+- API prompt JSON: [baseline](examples/krea2_afm_baseline_api.json) /
+  [discover](examples/krea2_afm_discover_api.json) / [observe](examples/krea2_afm_observe_api.json) /
+  [edit](examples/krea2_afm_edit_api.json)。API JSONはUI形式ではありません。
+
+公式Turbo構成を基に、512×512、固定seed、8 steps、CFG=1、Euler/simpleで用意しました。
+モデル名を実際のファイル名に合わせてください。実サーバー・ブラウザーへのロードと生成は未検証です。
 
 ```console
-python scripts/validate_workflow.py examples/krea2_afm_discover_api.json
+python scripts/validate_workflow.py examples/krea2_afm_edit_api.json
+python scripts/validate_workflow.py examples/krea2_afm_edit_api.json --object-info object_info.json
+python scripts/run_afm_matrix.py --comfy-url http://127.0.0.1:8188 --matrix examples/validation_matrix.json --out-dir outputs/krea2_afm
 ```
 
-保存済みの実サーバー `/object_info` があれば、ノード・入力・socket・モデル選択肢も
-確認できます。このコマンドはネットワーク通信・生成・モデル取得を行いません。
+最後のコマンドも既定はdry-runで、prompt/manifestを保存するだけです。
+後日、実際に生成する場合に限り `--execute` を追加します。今回は生成を実行していません。
+
+runnerは呼び出しごとの `invocation_id` をmanifestへ記録し、AFMログを
+`krea2_afm/<条件ID>-<invocation_id>.jsonl` に保存するようpromptへ設定します。
+`--server-log-dir` にはサーバーの `output/krea2_afm` をクライアントへ
+マウントまたは同期したディレクトリを指定します。今回のログがなければ
+`unverified` のままにし、過去の同名条件のログを証拠として使いません。
+
+## テストと対応範囲
 
 ```console
-python scripts/validate_workflow.py examples/krea2_afm_observe_api.json --object-info object_info.json
+python -m pytest tests -q
+python -m compileall -q afm nodes.py __init__.py scripts
 ```
+
+4D latent・単一フレーム5D・長方形を扱います。reference連結、複数フレーム、他Attention
+ override/post_input/QKV/outputパッチは拒否します。複数GPUとtorch.compileは対象外です。
+FP8/INT8・Turbo/Raw・LoRA・img2imgの実機動作は未確認です。
+
+詳しい手順は [検証文書](docs/validation.md)、実装記録は
+[実装状況](docs/implementation-status.md)、出典とライセンスは [NOTICE](NOTICE.md) を参照してください。

@@ -19,6 +19,7 @@ LAYOUT_KEY = "krea2_afm_layout"
 BACKENDS_KEY = "krea2_afm_backends"
 EVAL_KEY = "krea2_afm_model_eval_index"
 SKIP_KEY = "krea2_afm_skip"
+CAPS_KEY = "krea2_afm_capabilities"
 
 
 class AFMUnsupportedError(ValueError):
@@ -54,6 +55,13 @@ class RunState:
     reasons: Counter = field(default_factory=Counter)
     evaluations_per_step: Counter = field(default_factory=Counter)
     finished: bool = False
+    environment: dict = field(default_factory=dict)
+    profiles: list = field(default_factory=list)
+    fallback_calls: int = 0
+    nan_events: int = 0
+    oom_events: int = 0
+    edit_seconds: float = 0.0
+    benchmark_device: str | None = None
 
     def next_evaluation(self, progress: ProgressInfo | None) -> int:
         key = progress.step_index if progress else -1
@@ -156,12 +164,21 @@ def make_outer_sample_wrapper(config: AFMConfig):
         options = original.copy()
         options["transformer_options"] = original.get("transformer_options", {}).copy()
         state = RunState()
+        from .selection import load_qualified_profiles
+        state.profiles = load_qualified_profiles()
         options["transformer_options"][RUN_KEY] = state
         guider.model_options = options
         started = time.perf_counter()
         status, error_type = "error", None
         try:
-            emit_record(config, state.run_id, "run_start", environment=environment_metadata(),
+            device = _benchmark_device(config, guider, args, kwargs)
+            if device is not None:
+                torch.cuda.synchronize(device)
+                torch.cuda.reset_peak_memory_stats(device)
+                state.benchmark_device = str(device)
+                started = time.perf_counter()
+            state.environment = environment_metadata()
+            emit_record(config, state.run_id, "run_start", environment=state.environment,
                         config=configuration_metadata(config))
             result = executor(*args, **kwargs)
             status = "ok"
@@ -175,20 +192,51 @@ def make_outer_sample_wrapper(config: AFMConfig):
             options["transformer_options"].pop(RUN_KEY, None)
             state.finished = True
             try:
+                peak_allocated = peak_reserved = None
+                synchronized = False
+                measurement_error = None
+                if state.benchmark_device is not None:
+                    try:
+                        torch.cuda.synchronize(state.benchmark_device)
+                        peak_allocated = torch.cuda.max_memory_allocated(state.benchmark_device)
+                        peak_reserved = torch.cuda.max_memory_reserved(state.benchmark_device)
+                        synchronized = True
+                    except Exception as exc:
+                        peak_allocated = peak_reserved = None
+                        measurement_error = type(exc).__name__
                 emit_record(config, state.run_id, "run_summary", status=status, error_type=error_type,
                             model_evaluations=state.model_evaluations,
                             attention_calls=state.attention_calls, observed_calls=state.observed_calls,
                             edited_calls=state.edited_calls, reasons=dict(state.reasons),
+                            fallback_calls=state.fallback_calls, nan_events=state.nan_events,
+                            oom_events=state.oom_events,
                             wall_seconds=time.perf_counter() - started,
-                            timing_scope="outer_sample_unsynchronized_diagnostic",
-                            peak_allocated_bytes=None, peak_reserved_bytes=None,
-                            memory_measurement="not_measured")
+                            timing_scope="outer_sample_cuda_synchronized" if synchronized else "outer_sample_unsynchronized",
+                            peak_allocated_bytes=peak_allocated, peak_reserved_bytes=peak_reserved,
+                            memory_measurement=("failed" if measurement_error else
+                                                "server_cuda_peak" if synchronized else "not_measured"),
+                            measurement_error=measurement_error,
+                            measurement_source="server", cuda_synchronized=synchronized,
+                            edit_seconds=state.edit_seconds if synchronized else None,
+                            diagnostics_enabled=config.spectral_diag != "off" or config.compare_kernels)
             except Exception:
                 if error_type is None:
                     raise
                 logging.getLogger("krea2_afm").exception(
                     "Summary logging failed for run %s; preserving %s", state.run_id, error_type)
     return outer_sample
+
+
+def _benchmark_device(config, guider, args, kwargs):
+    if not config.benchmark:
+        return None
+    # ComfyUI moves the initially CPU noise only inside outer_sample, after this wrapper.
+    target = getattr(getattr(guider, "model_patcher", None), "load_device", None)
+    if target is not None:
+        device = torch.device(target)
+        return device if device.type == "cuda" else None
+    noise = args[0] if args else kwargs.get("noise")
+    return noise.device if isinstance(noise, torch.Tensor) and noise.device.type == "cuda" else None
 
 
 def make_diffusion_wrapper(config: AFMConfig):
@@ -223,6 +271,7 @@ def make_diffusion_wrapper(config: AFMConfig):
                 raise
             options[SKIP_KEY] = exc.reason
             state.reasons["fallback_original"] += 1
+            state.fallback_calls += 1
             emit_record(config, state.run_id, "evaluation_skipped", reason=exc.reason,
                         edit_applied=False, model_eval_index=options[EVAL_KEY])
         return executor(x, timesteps, context, attention_mask, ref_latents, options, **kwargs)
@@ -242,6 +291,7 @@ def make_post_input_patch(config: AFMConfig):
             if config.fail_mode == "raise":
                 raise
             state.reasons["fallback_original"] += 1
+            state.fallback_calls += 1
             options[SKIP_KEY] = exc.reason
             emit_record(config, state.run_id, "evaluation_skipped", reason=exc.reason,
                         edit_applied=False, model_eval_index=options.get(EVAL_KEY))
@@ -259,9 +309,8 @@ def make_post_input_patch(config: AFMConfig):
 def install_krea2_afm(model_patcher, config: AFMConfig):
     caps = detect_krea2(model_patcher)
     validate_config(config, caps)
-    if config.mode == "edit":
-        raise NotImplementedError("This diagnostic release supports off, discover and observe only")
-    if config.mode == "off":
+    if config.mode == "off" or (config.mode == "edit" and config.strength == 0
+                               and config.zero_strength_mode == "original"):
         return model_patcher.clone()
     conflicts = detect_patch_conflicts(model_patcher)
     if conflicts:
@@ -269,6 +318,7 @@ def install_krea2_afm(model_patcher, config: AFMConfig):
     from comfy.patcher_extension import WrappersMP
     clone = model_patcher.clone()
     clone.model_options["transformer_options"][CONFIG_KEY] = config
+    clone.model_options["transformer_options"][CAPS_KEY] = caps
     clone.add_wrapper_with_key(WrappersMP.OUTER_SAMPLE, WRAPPER_KEY, make_outer_sample_wrapper(config))
     clone.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, WRAPPER_KEY, make_diffusion_wrapper(config))
     clone.set_model_post_input_patch(make_post_input_patch(config))

@@ -4,12 +4,16 @@ Plan: `Krea2_AFM_Codex_Implementation_Plan_2026-09-30.md`, revision 2.
 
 ## Current milestone
 
-Implement Tasks 0–1 (diagnostics) in the requested directory, then hand off
-for the intermediate real-model GPU check required by the plan. Tasks 2–5
-remain pending that evidence. No edit kernel or qualified GPU profile is
-claimed by this milestone.
+Tasks 2–4 (AFM editing) and offline Task 5 tooling are implemented in the requested
+directory. The earlier decision to stop coding at the diagnostic GPU gate was
+too narrow: the user excluded real-model testing, not the edit implementation.
+Real-model evidence remains required for compatibility/performance claims and
+auto-profile qualification, but no longer blocks implementation and CPU tests.
 
 ## Decisions and preflight
+
+The diagnostic-stage scope rulings below are historical and superseded by the
+edit continuation. No real-model testing has been performed in either stage.
 
 - Task 0 → Task 1: immutable `AFMConfig`, native Krea2 capabilities and patch
   conflict detection feed runtime installation; interfaces agree.
@@ -19,7 +23,8 @@ claimed by this milestone.
   requested output directory remains the installable package.
 - Ruling: use the supplied design/plan and its explicit diagnostic milestone
   under the user's autonomous execution instruction. Further design approval
-  is unnecessary; GPU evidence is still required before the edit milestone.
+  is unnecessary. The historical GPU gate now applies to support and profile
+  qualification claims; it does not block edit implementation or CPU tests.
 - Ruling: absent a supplied server URL, use official upstream workflow/source
   evidence to prepare examples and a server-side validation handoff. Static
   validation is not a claim that cloud `/object_info` or inference passed.
@@ -41,7 +46,12 @@ claimed by this milestone.
   examples and CPU tests. Live `/object_info` validation remains unperformed.
 - [ ] Intermediate GPU gate: true baseline/discover/observe on Turbo and
   rectangle; confirm backend, grid, txtfusion exclusion, CFG, run isolation.
-- [ ] Tasks 2–5: FFT and edit kernels, numerical/GPU/quality/performance tests.
+- [x] Task 2: shared FP32 FFT, normalized radial cosine masks, DC preservation.
+- [x] Task 3: chunked joint manual attention and conservative workspace guard.
+- [x] Task 3A: augmented Q/K/V kernel and fail-closed profile selection.
+- [x] Task 4: edit node, zero controls, selected-row replacement, atomic fallback.
+- [x] Task 5 offline tooling: numeric/report utilities, API/UI examples, dry-run matrix runner.
+- [ ] Task 5 real-model/GPU/quality/performance evidence (explicitly excluded).
 
 Test evidence and final review findings are appended during implementation.
 
@@ -61,10 +71,10 @@ Test evidence and final review findings are appended during implementation.
 - Dedicated lint/typecheck tools are not installed; no new dependencies were
   installed. Syntax compilation and source-contract tests are the local checks.
 
-Task 1 exposes no edit settings or pretend implementation. The intermediate
-GPU gate and Tasks 2–5 are still open, as required by the supplied plan.
+The diagnostic-stage release exposed no edit settings. That release remains
+in history at b81d70f; the current feat/krea2-afm-edit branch adds the edit implementation.
 
-## Final review
+## Historical diagnostic review (b81d70f)
 
 Independent code review identified five important issues. Each was reproduced
 with a failing test before its fix:
@@ -83,11 +93,12 @@ with a failing test before its fix:
 
 Final: minor (deferred): object_info checker may raise AttributeError when a
 linked source node is a malformed non-dict, instead of returning an error list.
-This does not affect the shipped valid API examples or runtime node.
+This did not affect the shipped valid API examples or runtime node. Fixed in
+the edit continuation; it is no longer an open issue.
 
-Final: Ruling: edit kernels, real-model/GPU execution, quality and performance
-were outside this diagnostic review. They remain explicit open milestones,
-not implied support. Cost: no AFM edit or GPU capability can be claimed yet.
+Final: Ruling (historical): edit kernels, real-model/GPU execution, quality and
+performance were outside this diagnostic review. The edit continuation below
+supersedes the implementation scope; real-model qualification remains open.
 
 No inference, weights, external publication, merge or remote push was performed.
 
@@ -95,4 +106,64 @@ Final verification after fixes: **95 passed** with the optional source-contract
 tests enabled; `compileall` and `git diff --check` passed; all three API examples
 passed graph-only validation. No dedicated linter/type checker or live
 `/object_info` validation was run. Work remains in the requested directory on
-`diagnostic/krea2-afm`; there was no existing base branch or remote to integrate.
+`diagnostic/krea2-afm` at that stage; current work is on `feat/krea2-afm-edit`.
+
+## Edit continuation
+
+Base: b81d70f. New local branch: feat/krea2-afm-edit.
+
+- Reused the existing plan's interfaces and invariant tests; no source forward
+  copy, global patch, model download, dependency install, or inference.
+- Independent executor lanes implemented numeric kernels and offline tooling;
+  the leader integrated node/runtime/diagnostics and owns final verification.
+- Numeric kernels retain full image-grid FFT, all-key softmax, explicit scale,
+  and per-head output restoration. Local autocast is disabled for FP32 paths.
+- Editing retains one baseline, returns untouched text/unselected sample rows,
+  and discards all partial replacements on failure. Zero original adds no hooks.
+- Qualified profiles remain empty. Auto matches actual memory-adjusted chunk
+  sizes before using any future profile, including dtype/precision/environment.
+- The previously deferred malformed-node checker issue is fixed with a regression test.
+- GPU benchmark ordering is tested with mocks only. CPU runs never report CUDA peaks.
+- Edit UI/API examples passed static linkage/widget checks; real UI loading is unverified.
+- Dry-run matrix preparation saved seven prompts; all seven remained `not_submitted`.
+
+Before final review: full source-contract-enabled suite **225 passed**;
+one GPU test deselected. Additional review regressions are recorded below.
+
+## Resumed implementation verification (2026-09-30)
+
+- Matrix runner now generates one UUID `invocation_id` per invocation and injects
+  `krea2_afm/<run-id>-<invocation-id>.jsonl` after all node-input overrides.
+  Manifest and mapped server logs use the same identity. Missing current logs
+  stay `unverified`; previous fixed-name logs are never used as evidence.
+- Multiple matrix conditions carry their own mapped log path through execution.
+  A two-condition regression proves each summary is attached to its own record.
+- Profile qualification canonicalizes dtype aliases and rejects mixed activation
+  dtype reports. Required strengths cannot be combined across FP16/BF16.
+  Existing candidate-precision and numerical-threshold guards remain in force.
+- Regression evidence: runner identity tests failed before the fix; the extra
+  multi-run case also failed before its fix. Runner suite: **11 passed**.
+  Mixed-dtype regression failed before the fix; report suite: **15 passed**.
+- Final full suite with `KREA2_COMFY_SOURCE_ROOT=.reference/upstream-9d80841`:
+  **241 passed, 1 GPU test deselected**. No source-contract tests skipped.
+- `compileall`, `git diff --check`, and edit API graph validation passed.
+  Dry-run manifest assertions confirmed seven `not_submitted` conditions,
+  seven `unverified` metrics, unique log paths, and matching log inputs in all
+  six AFM prompts (the seventh is true baseline).
+- Dedicated lint/typecheck tools (`ruff`, `mypy`, `pyright`) remain unavailable;
+  none were installed. No real-model, GPU, server/UI load or quality validation.
+
+### Remaining minor diagnostic issues
+
+- Unsupported branch/mask reasons can be counted twice in one attention call.
+- `profile_not_qualified` is in attention metadata but absent from aggregate
+  `RunState.reasons`. Edit and fallback counts are unaffected.
+
+These counters remain deferred from the prior kernel/runtime review. Profiles
+remain empty; no GPU support, speed, VRAM or image-quality claim is made.
+
+Independent final review of the resumed tools/tests and logging/selection
+boundaries found **no unresolved issues**. Its own targeted suite passed all
+26 tests. Previously reviewed kernel/runtime internals were not reopened beyond
+those integrations. Real-model/GPU/performance/quality/profile adoption remain
+outside this review. Work is retained locally on `feat/krea2-afm-edit`.

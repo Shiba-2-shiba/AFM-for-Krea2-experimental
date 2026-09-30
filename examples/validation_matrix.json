@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "description": "Offline-preparable smoke and AFM controls. Execution requires --execute and a validated ComfyUI host.",
+  "runs": [
+    {
+      "id": "baseline-smoke-seed-20260930",
+      "workflow": "krea2_afm_baseline_api.json",
+      "seed": 20260930,
+      "control": "baseline",
+      "diagnostic_mode": "off"
+    },
+    {
+      "id": "discover-smoke-seed-20260930",
+      "workflow": "krea2_afm_discover_api.json",
+      "seed": 20260930,
+      "control": "discover",
+      "diagnostic_mode": "summary"
+    },
+    {
+      "id": "observe-smoke-seed-20260930",
+      "workflow": "krea2_afm_observe_api.json",
+      "seed": 20260930,
+      "control": "observe",
+      "diagnostic_mode": "summary"
+    },
+    {
+      "id": "manual-zero-seed-20260930",
+      "workflow": "krea2_afm_edit_api.json",
+      "seed": 20260930,
+      "control": "manual_zero",
+      "diagnostic_mode": "comparison",
+      "node_inputs": {
+        "20": {"implementation": "manual", "strength": 0.0, "zero_strength_mode": "manual"}
+      }
+    },
+    {
+      "id": "augmented-zero-seed-20260930",
+      "workflow": "krea2_afm_edit_api.json",
+      "seed": 20260930,
+      "control": "augmented_zero",
+      "diagnostic_mode": "comparison",
+      "node_inputs": {
+        "20": {"implementation": "augmented", "strength": 0.0, "zero_strength_mode": "augmented"}
+      }
+    },
+    {
+      "id": "manual-edit-005-seed-20260930",
+      "workflow": "krea2_afm_edit_api.json",
+      "seed": 20260930,
+      "control": "manual_edit",
+      "diagnostic_mode": "comparison",
+      "node_inputs": {
+        "20": {"implementation": "manual", "strength": 0.05}
+      }
+    },
+    {
+      "id": "augmented-edit-005-seed-20260930",
+      "workflow": "krea2_afm_edit_api.json",
+      "seed": 20260930,
+      "control": "augmented_edit",
+      "diagnostic_mode": "comparison",
+      "node_inputs": {
+        "20": {"implementation": "augmented", "strength": 0.05}
+      }
+    }
+  ]
+}

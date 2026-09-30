@@ -30,6 +30,14 @@ class AFMConfig:
     query_chunk_size: int = 128
     max_workspace_mib: float = 512.0
     jsonl_path: str = ""
+    augmented_precision: str = "activation"
+    diagnostic_block_scope: str = "0"
+    diagnostic_every_n_steps: int = 1
+    diagnostic_head_limit: int = 1
+    diagnostic_query_chunk_size: int = 128
+    diagnostic_top_k: int = 4
+    compare_kernels: bool = False
+    benchmark: bool = False
 
 
 def parse_block_scope(scope: str, block_count: int) -> frozenset[int]:
@@ -55,7 +63,8 @@ def validate_config(config: AFMConfig, caps: "Krea2Capabilities") -> None:
         "schedule": ("curve",),
         "branch_mode": ("positive_only", "negative_only", "both"),
         "zero_strength_mode": ("original", "manual", "augmented"),
-        "spectral_diag": ("off",),
+        "spectral_diag": ("off", "sampled"),
+        "augmented_precision": ("activation", "float32"),
         "debug_level": ("off", "summary", "verbose"),
         "fail_mode": ("raise", "fallback_original"),
     }
@@ -70,10 +79,14 @@ def validate_config(config: AFMConfig, caps: "Krea2Capabilities") -> None:
         raise ValueError("Require 0 <= start_percent <= end_percent <= 1")
     if not 0 < config.cutoff < 1 or not 0 < config.mask_width <= 1:
         raise ValueError("cutoff must be in (0,1); mask_width must be in (0,1]")
-    for name in ("head_chunk_size", "query_chunk_size"):
+    for name in ("head_chunk_size", "query_chunk_size", "diagnostic_every_n_steps",
+                 "diagnostic_head_limit", "diagnostic_query_chunk_size", "diagnostic_top_k"):
         value = getattr(config, name)
         if type(value) is not int or value <= 0:
             raise ValueError(f"{name} must be a positive integer")
     if config.max_workspace_mib <= 0:
         raise ValueError("max_workspace_mib must be positive")
+    if config.benchmark and (config.spectral_diag != "off" or config.compare_kernels):
+        raise ValueError("Disable spectral/comparison diagnostics for benchmark measurements")
     parse_block_scope(config.block_scope, caps.block_count)
+    parse_block_scope(config.diagnostic_block_scope, caps.block_count)

@@ -9,6 +9,8 @@ import subprocess
 
 import torch
 
+from .metrics import ValidationMetrics  # Public plan interface; implementation shared with offline tools.
+
 LOGGER = logging.getLogger("krea2_afm")
 
 

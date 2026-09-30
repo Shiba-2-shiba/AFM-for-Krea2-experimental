@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-krea2-afm"
 version = "0.1.0"
-description = "Experimental Krea2 attention diagnostics for ComfyUI"
+description = "Experimental Krea2 attention frequency editing and diagnostics for ComfyUI"
 requires-python = ">=3.10"
 
 [tool.pytest.ini_options]

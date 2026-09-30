@@ -13,13 +13,13 @@ class Krea2AFMModelPatch(io.ComfyNode):
             node_id="Krea2AFMModelPatch",
             display_name="Krea2 AFM Model Patch",
             category="model_patches/krea2",
-            description=("Experimental Krea2 AFM diagnostics. Discover/observe preserve original "
-                         "attention. Editing is not implemented in this diagnostic release."),
+            description=("Experimental Krea2 image-to-text attention frequency modulation. "
+                         "Discover/observe preserve original attention. Auto uses manual until GPU qualified."),
             search_aliases=["krea2 afm", "attention frequency modulation"],
             is_experimental=True,
             inputs=[
                 io.Model.Input("model"),
-                io.Combo.Input("mode", options=["off", "discover", "observe"], default="observe"),
+                io.Combo.Input("mode", options=["off", "discover", "observe", "edit"], default="observe"),
                 io.String.Input("block_scope", default="0-3",
                                 tooltip="Body block indices: 0-3, 0,2 or all. Discover logs all blocks."),
                 io.Combo.Input("branch_mode", options=["positive_only", "negative_only", "both"],
@@ -30,6 +30,30 @@ class Krea2AFMModelPatch(io.ComfyNode):
                 io.Combo.Input("debug_level", options=["off", "summary", "verbose"], default="summary"),
                 io.String.Input("jsonl_path", default="krea2_afm/diagnostics.jsonl",
                                 tooltip="A .jsonl path under output/krea2_afm/. Empty disables file logging."),
+                io.Float.Input("strength", default=0.05, min=-1.0, max=2.0, step=0.01),
+                io.Combo.Input("implementation", options=["auto", "manual", "augmented"], default="auto"),
+                io.Float.Input("cutoff", default=0.25, min=0.01, max=0.99, step=0.01),
+                io.Combo.Input("schedule", options=["curve"], default="curve", advanced=True),
+                io.Boolean.Input("preserve_dc", default=True, advanced=True),
+                io.Boolean.Input("soft_mask", default=True, advanced=True),
+                io.Float.Input("mask_width", default=0.05, min=0.001, max=1.0, step=0.01, advanced=True),
+                io.Combo.Input("zero_strength_mode", options=["original", "manual", "augmented"],
+                               default="original", advanced=True),
+                io.Int.Input("head_chunk_size", default=2, min=1, max=64, advanced=True),
+                io.Int.Input("query_chunk_size", default=128, min=1, max=4096, advanced=True),
+                io.Float.Input("max_workspace_mib", default=512.0, min=1.0, max=65536.0, step=16.0, advanced=True),
+                io.Combo.Input("augmented_precision", options=["activation", "float32"],
+                               default="activation", advanced=True),
+                io.Combo.Input("spectral_diag", options=["off", "sampled"], default="off", advanced=True),
+                io.String.Input("diagnostic_block_scope", default="0", advanced=True),
+                io.Int.Input("diagnostic_every_n_steps", default=1, min=1, max=1000, advanced=True),
+                io.Int.Input("diagnostic_head_limit", default=1, min=1, max=8, advanced=True),
+                io.Int.Input("diagnostic_query_chunk_size", default=128, min=1, max=512, advanced=True),
+                io.Int.Input("diagnostic_top_k", default=4, min=1, max=64, advanced=True),
+                io.Boolean.Input("compare_kernels", default=False, advanced=True,
+                                 tooltip="Bounded same-QKV manual/augmented comparisons; adds significant work."),
+                io.Boolean.Input("benchmark", default=False, advanced=True,
+                                 tooltip="Synchronize CUDA and measure server-side peak memory and elapsed time."),
             ],
             outputs=[io.Model.Output(display_name="model")],
         )
@@ -37,7 +61,13 @@ class Krea2AFMModelPatch(io.ComfyNode):
     @classmethod
     def execute(cls, model, mode="observe", block_scope="0-3", branch_mode="positive_only",
                 start_percent=0.0, end_percent=1.0, fail_mode="raise", debug_level="summary",
-                jsonl_path="krea2_afm/diagnostics.jsonl") -> io.NodeOutput:
+                jsonl_path="krea2_afm/diagnostics.jsonl", strength=0.05, implementation="auto",
+                cutoff=0.25, schedule="curve", preserve_dc=True, soft_mask=True, mask_width=0.05,
+                zero_strength_mode="original", head_chunk_size=2, query_chunk_size=128,
+                max_workspace_mib=512.0, augmented_precision="activation", spectral_diag="off",
+                diagnostic_block_scope="0", diagnostic_every_n_steps=1, diagnostic_head_limit=1,
+                diagnostic_query_chunk_size=128, diagnostic_top_k=4, compare_kernels=False,
+                benchmark=False) -> io.NodeOutput:
         if jsonl_path:
             import folder_paths
             relative = Path(jsonl_path)
@@ -49,7 +79,18 @@ class Krea2AFMModelPatch(io.ComfyNode):
             jsonl_path = str(path)
         config = AFMConfig(mode=mode, block_scope=block_scope, branch_mode=branch_mode,
                            start_percent=start_percent, end_percent=end_percent,
-                           fail_mode=fail_mode, debug_level=debug_level, jsonl_path=jsonl_path)
+                           fail_mode=fail_mode, debug_level=debug_level, jsonl_path=jsonl_path,
+                           strength=strength, implementation=implementation, cutoff=cutoff,
+                           schedule=schedule, preserve_dc=preserve_dc, soft_mask=soft_mask,
+                           mask_width=mask_width, zero_strength_mode=zero_strength_mode,
+                           head_chunk_size=head_chunk_size, query_chunk_size=query_chunk_size,
+                           max_workspace_mib=max_workspace_mib, augmented_precision=augmented_precision,
+                           spectral_diag=spectral_diag, diagnostic_block_scope=diagnostic_block_scope,
+                           diagnostic_every_n_steps=diagnostic_every_n_steps,
+                           diagnostic_head_limit=diagnostic_head_limit,
+                           diagnostic_query_chunk_size=diagnostic_query_chunk_size,
+                           diagnostic_top_k=diagnostic_top_k, compare_kernels=compare_kernels,
+                           benchmark=benchmark)
         return io.NodeOutput(install_krea2_afm(model, config))
 
 

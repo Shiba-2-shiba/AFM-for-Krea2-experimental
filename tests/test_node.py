@@ -27,7 +27,7 @@ def node_module(monkeypatch, host, tmp_path):
     latest.ComfyExtension = type("ComfyExtension", (), {})
     latest.io = SimpleNamespace(ComfyNode=object, Schema=Schema, NodeOutput=NodeOutput,
                                **{name: SimpleNamespace(Input=Input, Output=Output)
-                                  for name in ("Model", "Combo", "String", "Float")})
+                                  for name in ("Model", "Combo", "String", "Float", "Int", "Boolean")})
     monkeypatch.setitem(sys.modules, "comfy_api", ModuleType("comfy_api"))
     monkeypatch.setitem(sys.modules, "comfy_api.latest", latest)
     paths = ModuleType("folder_paths")
@@ -48,7 +48,7 @@ def test_v3_node_schema(node_module):
     assert schema.node_id == "Krea2AFMModelPatch"
     fields = {field.name: field for field in schema.inputs}
     assert fields["mode"].default == "observe"
-    assert fields["mode"].options == ["off", "discover", "observe"]
+    assert fields["mode"].options == ["off", "discover", "observe", "edit"]
     assert fields["fail_mode"].default == "raise"
     assert schema.is_experimental
     assert len(schema.outputs) == 1
@@ -60,9 +60,18 @@ def test_node_clones_model(node_module, host):
     assert host.model_options == {"transformer_options": {}}
 
 
-def test_node_refuses_edit_even_via_api(node_module, host):
-    with pytest.raises(NotImplementedError, match="diagnostic"):
-        node_module.execute(host, mode="edit")
+def test_node_exposes_edit(node_module, host):
+    patched = node_module.execute(host, mode="edit").result[0]
+    assert patched.model_options["transformer_options"]["krea2_afm_config"].mode == "edit"
+
+
+def test_edit_controls_use_shared_config_defaults(node_module):
+    from afm.config import AFMConfig
+    fields = {field.name: field for field in node_module.define_schema().inputs}
+    for name in ("strength", "implementation", "cutoff", "schedule", "preserve_dc", "soft_mask",
+                 "mask_width", "zero_strength_mode", "head_chunk_size", "query_chunk_size",
+                 "max_workspace_mib", "augmented_precision", "spectral_diag", "compare_kernels"):
+        assert fields[name].default == getattr(AFMConfig(), name)
 
 
 @pytest.mark.parametrize("path", ["../escape.jsonl", "krea2_afm/../../escape.jsonl",

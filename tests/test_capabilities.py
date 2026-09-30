@@ -29,7 +29,7 @@ def test_reject_non_krea2(host, name):
     {"head_chunk_size": 0}, {"query_chunk_size": 0}, {"strength": float("nan")},
     {"strength": float("inf")}, {"max_workspace_mib": 0}, {"cutoff": 1.1},
     {"implementation": "guess"}, {"zero_strength_mode": "observe"},
-    {"fail_mode": "ignore"}, {"spectral_diag": "sampled"},
+    {"fail_mode": "ignore"}, {"spectral_diag": "invalid"},
 ])
 def test_scope_and_window_validation(host, changes):
     with pytest.raises(ValueError):

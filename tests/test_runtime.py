@@ -190,9 +190,9 @@ def test_install_clone_and_conflict(host):
 
 
 @pytest.mark.parametrize("strength", [0., .05])
-def test_edit_is_explicitly_unimplemented(host, strength):
-    with pytest.raises(NotImplementedError, match="diagnostic"):
-        install_krea2_afm(host, AFMConfig(mode="edit", strength=strength))
+def test_edit_installs_only_for_nonzero_original(host, strength):
+    clone = install_krea2_afm(host, AFMConfig(mode="edit", strength=strength))
+    assert bool(clone.model_options["transformer_options"].get("patches")) == (strength != 0)
 
 
 @pytest.mark.parametrize("patch_name", ["post_input", "attn1_patch", "attn1_output_patch"])
@@ -261,3 +261,62 @@ def test_multigpu_rejected_before_outer_sample_creates_pool(host, signal):
         make_outer_sample_wrapper(AFMConfig())(Executor(guider, sample))
     assert not entered
     assert guider.model_options is options
+
+
+def test_benchmark_metrics_are_measured_in_server_wrapper(host, monkeypatch, tmp_path):
+    import afm.runtime as runtime
+    calls = []
+    monkeypatch.setattr(runtime, "_benchmark_device", lambda config, guider, args, kwargs: "cuda:0", raising=False)
+    monkeypatch.setattr(torch.cuda, "synchronize", lambda device: calls.append("sync"))
+    monkeypatch.setattr(torch.cuda, "reset_peak_memory_stats", lambda device: calls.append("reset"))
+    monkeypatch.setattr(torch.cuda, "max_memory_allocated", lambda device: 1234)
+    monkeypatch.setattr(torch.cuda, "max_memory_reserved", lambda device: 5678)
+    log = tmp_path / "benchmark.jsonl"
+    guider = SimpleNamespace(model_options=host.model_options)
+    def sample():
+        calls.append("sample")
+        return "ok"
+    assert make_outer_sample_wrapper(AFMConfig(benchmark=True, jsonl_path=str(log)))(Executor(guider, sample)) == "ok"
+    summary = json.loads(log.read_text().splitlines()[-1])
+    assert calls == ["sync", "reset", "sample", "sync"]
+    assert summary["peak_allocated_bytes"] == 1234
+    assert summary["peak_reserved_bytes"] == 5678
+    assert summary["measurement_source"] == "server"
+    assert summary["cuda_synchronized"] is True
+
+
+def test_cpu_benchmark_does_not_claim_cuda_metrics(host, tmp_path):
+    log = tmp_path / "cpu.jsonl"
+    guider = SimpleNamespace(model_options=host.model_options)
+    assert make_outer_sample_wrapper(AFMConfig(benchmark=True, jsonl_path=str(log)))(
+        Executor(guider, lambda *args: 42), torch.zeros(1)) == 42
+    summary = json.loads(log.read_text().splitlines()[-1])
+    assert summary["peak_allocated_bytes"] is None
+    assert summary["cuda_synchronized"] is False
+
+
+def test_benchmark_uses_target_device_before_cpu_noise_is_moved(host):
+    from afm.runtime import _benchmark_device
+    host.load_device = torch.device("cuda:0")  # a device descriptor, not a CUDA allocation
+    guider = SimpleNamespace(model_patcher=host)
+    device = _benchmark_device(AFMConfig(benchmark=True), guider, (torch.zeros(1),), {})
+    assert str(device) == "cuda:0"
+
+
+def test_measurement_failure_still_emits_terminal_summary(host, monkeypatch, tmp_path):
+    import afm.runtime as runtime
+    monkeypatch.setattr(runtime, "_benchmark_device", lambda *args: "cuda:0")
+    monkeypatch.setattr(torch.cuda, "synchronize", lambda device: None)
+    monkeypatch.setattr(torch.cuda, "reset_peak_memory_stats", lambda device: None)
+    def failed_measurement(device):
+        raise RuntimeError("injected metrics failure")
+    monkeypatch.setattr(torch.cuda, "max_memory_allocated", failed_measurement)
+    log = tmp_path / "metrics_failure.jsonl"
+    guider = SimpleNamespace(model_options=host.model_options)
+    assert make_outer_sample_wrapper(AFMConfig(benchmark=True, jsonl_path=str(log)))(
+        Executor(guider, lambda: 42)) == 42
+    summary = json.loads(log.read_text().splitlines()[-1])
+    assert summary["event"] == "run_summary"
+    assert summary["memory_measurement"] == "failed"
+    assert summary["measurement_error"] == "RuntimeError"
+    assert summary["peak_allocated_bytes"] is None

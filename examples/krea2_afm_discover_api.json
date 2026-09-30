@@ -90,10 +90,6 @@
   "20": {
     "class_type": "Krea2AFMModelPatch",
     "inputs": {
-      "model": [
-        "10",
-        0
-      ],
       "mode": "discover",
       "block_scope": "0-3",
       "branch_mode": "positive_only",
@@ -101,7 +97,31 @@
       "end_percent": 1,
       "fail_mode": "raise",
       "debug_level": "summary",
-      "jsonl_path": "krea2_afm/discover.jsonl"
+      "jsonl_path": "krea2_afm/discover.jsonl",
+      "strength": 0.05,
+      "implementation": "auto",
+      "cutoff": 0.25,
+      "schedule": "curve",
+      "preserve_dc": true,
+      "soft_mask": true,
+      "mask_width": 0.05,
+      "zero_strength_mode": "original",
+      "head_chunk_size": 2,
+      "query_chunk_size": 128,
+      "max_workspace_mib": 512.0,
+      "augmented_precision": "activation",
+      "spectral_diag": "off",
+      "diagnostic_block_scope": "0",
+      "diagnostic_every_n_steps": 1,
+      "diagnostic_head_limit": 1,
+      "diagnostic_query_chunk_size": 128,
+      "diagnostic_top_k": 4,
+      "compare_kernels": false,
+      "benchmark": false,
+      "model": [
+        "10",
+        0
+      ]
     }
   },
   "29": {

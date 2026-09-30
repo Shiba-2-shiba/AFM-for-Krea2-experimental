@@ -45,6 +45,8 @@ def validate_workflow(graph: dict, object_info: dict | None = None) -> list[str]
                     continue
                 if object_info is not None:
                     source_node = graph[source]
+                    if not isinstance(source_node, dict):
+                        continue  # The source's invalid API node is already reported.
                     source_schema = object_info.get(source_node.get("class_type"), {})
                     outputs = source_schema.get("output", [])
                     if slot >= len(outputs):

@@ -1,89 +1,111 @@
-# 検証範囲
+# 検証と実機確認への引き継ぎ
 
-この版は Task 0–1 の診断版です。今回、実モデルの推論は実施しません。
+今回は実モデル推論・GPU測定を実施していません。Task 2–4の編集コードと、
+Task 5のローカル検証/引き継ぎツールを実装しています。
 
-| 項目 | 根拠 / 状態 |
+| 項目 | 現時点の証拠 |
 | --- | --- |
-| Python / PyTorch | ローカル Python 3.10.11 / PyTorch 2.10.0+cpu |
-| Krea2 API | 固定 ComfyUI commit のソース確認と最小 CPU スタブ |
-| Turbo / Raw 推論 | 未実施 |
-| FP8 / INT8 / LoRA / img2img | 未検証 |
-| CUDA backend / VRAM / 時間 | 未測定 |
-| AFM manual / augmented | 未実装 |
-| auto 採用プロファイル | 未登録 |
+| manual / augmented / dense reference | 合成TensorのCPU FP32比較 |
+| DC・長方形・線形性・明示scale・head復元 | CPU回帰テスト |
+| CFG・container・例外時atomic fallback | 最小hostスタブと上流dispatcher契約テスト |
+| FP32を指定した計算 | CPU BF16 autocast下でもFP32 referenceと比較 |
+| メモリ | Tensor生存期間を含む見積もりとchunk縮小テスト。実測VRAMではない |
+| V3/API/UI workflow | schema・JSON・リンク/設定の静的確認。実サーバーロード未確認 |
+| Turbo / Raw、量子化、LoRA、img2img | 実機未検証 |
+| 速度・peak VRAM・生成画像の品質 | 未測定 |
+| auto採用profile | 空。未確認環境はmanual |
 
-ソース基準:
-[Krea2](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/ldm/krea2/model.py)、
-[Attention dispatch](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/ldm/modules/attention.py)、
-[wrappers](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/patcher_extension.py)、
-[samplers](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/samplers.py)。
+## ローカル確認
 
-例の workflow は後日のサーバー確認用です。実サーバーの `/object_info` で
-loader / sampler / AFM ノードの入力を照合し、インストール済みモデル名へ置換して
-初めて実行条件が揃います。静的 JSON 確認を推論成功と扱わないでください。
-
-## 後日行う実機確認（今回は実施しない）
-
-1. 実サーバーの ComfyUI commit、PyTorch/CUDA、GPU、モデルファイル名、
-   量子化形式、起動時 backend オプションを記録する。
-2. `/object_info` を保存し、`scripts/validate_workflow.py --object-info` で
-   API 例を照合する。ファイル名と解像度以外の比較条件を固定する。
-3. baseline を同じ seed で2回実行し、元 backend 自体の再現性を把握する。
-4. discover を実行する。本体の `block_type=single` に相当する呼び出しのみ、
-   `block_index`、`grid`、`text_tokens`、`image_tokens`、`img_slice`、
-   `baseline_backend`、`preferred_backend`、`activation_dtype` を確認する。
-5. observe を実行して baseline の変動範囲と比較する。`observed_calls > 0`、
-   `edited_calls=0`、`status=ok` を確認。全fallbackは診断成功と扱わない。
-6. 768正方形と長方形、Raw の CFG>1、連続run、通常LoRAなどを別条件として検証する。
-   `[0] / [1] / [0,1] / [1,0]` の CFG 配置と selected batch rows を記録する。
-
-API JSON を `/prompt` に渡す場合は `{"prompt": <API JSON>}` の形で包みます。
-ブラウザー UI 用workflowのロード・実行確認は Task 5 に残しています。
-
-## ログの読み方と限界
-
-- `schema_version=4`, `model_family=krea2`, runごとに新しい `run_id`。
-- `model_eval_index` は同じstep内のforwardごとに増加。CFGが別forwardの場合も区別する。
-- `progress` は実際の `sample_sigmas` の評価点。対応しないsigmaを最近傍へ丸めない。
-  未対応の場合は `unsupported_progress` と null を記録して観測を続ける。
-- `cond_or_uncond` が欠ける場合、positiveと推測せず選択行を空にする。
-  型が不正な場合も選択せず、値そのものをダンプせずnullと理由を記録する。
-- 現行container API / 従来Tensor APIの両方を扱い、`peek()` による形状検査後に
-  baseline dispatchが一度だけ消費する。observeの戻り値はbaselineと同じTensor。
-- `max_logits_delta`, 周波数指標、編集backendなどの未測定値は null。
-  診断版はlogits/FFTを計算しない。
-- `wall_seconds` はCPU側の非同期診断区間。性能benchmarkやGPU時間ではない。
-  VRAM peakは未測定としてnullを記録する。Task 5でCUDA同期と測定条件を追加する。
-- モデルのファイル名はModelPatcherから確実に取得できないため `unknown` とする。
-  API promptを実行記録と一緒に保存する。ComfyUI git情報が取得できない場合もunknown。
-- マルチGPU、torch.compile、reference、複数フレーム、他Attentionパッチとの併用を
-  保証しない。検出可能な条件は拒否する。
-  AFM設置後に追加されたpost_input/QKV/outputパッチもforward前に拒否する。
-- sampling例外とsummary保存失敗が同時に発生した場合、元のsampling例外を維持し、
-  二次的なログ失敗をコンソールへ記録する。summaryの試行は1回。
-- ノードからのJSONL保存先はComfyUI output内の `krea2_afm/` に限定する。
-  絶対パス・traversal・解決後の範囲外パスを拒否する。内部Python APIの
-  `AFMConfig.jsonl_path` は信頼された呼び出し元向けで、ノード入力用ではない。
-
-既知の小課題: `validate_workflow.py --object-info` で、リンク先ノードがdictではない
-壊れたJSONを渡すと、検証エラー一覧の代わりにAttributeErrorで終了する場合があります。
-同梱の3つのAPI例はこの条件に該当しません。
-
-## ソースだけで行う上流契約テスト
-
-ComfyUIソースがある場合、環境変数 `KREA2_COMFY_SOURCE_ROOT` をそのルートへ設定し、
-次を実行できます。通常のテストではこの3件をスキップします。
+Python 3.10.11、PyTorch 2.10.0+cpu、pytest 9.0.2で確認します。
+2026-09-30の再開後検証は、上流ソース契約を含めて241件PASS、GPU1件除外。
+構文チェック、API graph検証、7条件dry-runのログ対応確認も成功しています。
+専用lint/typecheckツールは未導入です。
 
 ```console
-python -m pytest tests/test_source_contract.py -q
+python -m pytest tests -q
+python -m compileall -q afm nodes.py __init__.py scripts
+python scripts/validate_workflow.py examples/krea2_afm_edit_api.json
 ```
 
-ASTで読み出した上流の `AttentionTensorContainer`, `wrap_attn`, `WrapperExecutor`,
-optionsコピー関数のみを実行します。ComfyUIのモデル・サーバーやGPU依存moduleは
-ロードしません。固定revisionでは3件が通過しています。別版を指定した結果は、
-その版のdispatcher契約に限った証拠です。
+通常実行はGPU markerを除外します。ComfyUIソースがあれば環境変数
+`KREA2_COMFY_SOURCE_ROOT` にルートを設定して、`tests/test_source_contract.py` の3件も
+実行できます。上流のcontainer / dispatcher / wrapper定義だけをASTで読み出す方式で、
+モデルやGPU依存moduleはロードしません。ソースがなければ、この3件はスキップします。
 
-参照した公式workflow:
-[image_krea2_turbo_t2i.json](https://github.com/Comfy-Org/workflow_templates/blob/main/templates/image_krea2_turbo_t2i.json)。
-2026-09-30取得版の SHA-256:
+## 診断の意味
+
+- `schema_version=4`, `model_family=krea2`。各runの開始とsummaryを `run_id` で結びます。
+- `model_eval_index` は同じstep内のforwardごとに増加。CFGが別forwardの場合も区別します。
+- `progress` は実際の `sample_sigmas` の評価点。未知のsigmaを最近傍へ丸めません。
+- CFG metadataが欠落/不正ならpositiveと仮定しません。編集はraiseまたは元出力へのfallback。
+- 編集は画像Query→テキストKeyのlogitsだけに適用しますが、正規化は全Keyで行います。
+- 元backendは1回だけ呼び、containerは1回だけ消費します。失敗時は同じbaselineへ戻ります。
+- sampled spectral診断の `rho_text_conditional` は、テキスト内softmaxのtop-K平均集中度から
+  空間平均を引き、そのスペクトルのHF比を測るものです。画像解像度/追従性の指標ではありません。
+- `text_attention_mass` は全Keyで正規化した確率のうちテキストKeyに割り当てられた量です。
+- diagnostics off時のaugmented経路は観測用logitsを再生成しません。
+- kernel比較は同じQKVの選択head/画像行で実行。manual referenceは同じQKVのFP32 castです。
+  別runの最終画像だけでkernelの等価性を判定しません。
+- 未計測値はnull。モデルファイル名はModelPatcherから確実に取得できないのでunknown。
+  実際のAPI promptをmanifestと一緒に保存してください。
+
+ログ内の `branch` は比較対象のbatch行番号です。`attention` イベントには
+`cond_or_uncond` と `selected_batch_rows` も記録するため、CFG配置と併せて解釈します。
+run間で比較する際は同じCFG配置・batch条件を維持してください。
+
+## 後日行う実機確認（今回は実行しない）
+
+1. ComfyUI commit、PyTorch/CUDA、GPU、モデルファイル名/量子化、起動backendを記録します。
+2. 実サーバー `/object_info` を保存し、例のモデル名を置換して照合します。
+3. true baselineを同一seedで2回実行し、元backend自体の変動を確認します。
+4. discover/observeでtxtfusion除外、block、grid、img_slice、preferred backendを確認します。
+5. zero original、manual zero、augmented zeroを分けて測定します。
+6. manual/augmentedの .05/.1/.2 と同一QKV比較を、まず小解像度、768正方形、長方形で行います。
+7. Raw CFG>1、通常LoRA、img2img、量子化/backend形式を別条件として確認します。
+8. 各方式1回warm-up後、順序を交互にして5回ずつ測定します。
+
+```console
+python scripts/run_afm_matrix.py --comfy-url http://127.0.0.1:8188 --matrix examples/validation_matrix.json --out-dir outputs/krea2_afm
+```
+
+このコマンドはdry-runです。後日の生成時だけ `--execute` を付けます。
+`--unet-name`, `--clip-name`, `--vae-name` で実際のファイル名を指定できます。
+API JSONを自分で送信する場合は `{"prompt": <API JSON>}` の形で `/prompt` に渡します。
+生成成功と編集適用成功を混同せず、serverのJSONL summaryも回収してください。
+
+manifestの `invocation_id` はrunner呼び出しごとに変わります。各条件の
+`server_log_relative` とpromptの `jsonl_path` は
+`krea2_afm/<条件ID>-<invocation_id>.jsonl` で一致します。
+`--server-log-dir` はサーバーの `output/krea2_afm` をクライアント側へ
+マウント/同期したディレクトリです。今回のファイルがなければ
+`server_metrics=unverified` とし、以前のログで代用しません。
+
+`benchmark=true` のときだけ、server wrapperでCUDA同期とpeak計測を行います。
+CPU/defaultでは `cuda_synchronized=false`、VRAMはnullです。clientプロセスのCUDA統計を
+serverの値として使いません。coldとwarmは分け、benchmark中は比較/spectral診断をoffにします。
+全fallback、OOM/NaN、未測定、効果判定不能の条件をautoへ採用しません。
+
+数値の閾値と性能条件は計画書6.2/6.3の通りです。
+`afm/qualified_profiles.json` は自動更新せず空のままにしてあります。
+profileを将来追加するには、同じ環境/精度/形状/chunk/フィルタ設定の数値reportと
+server benchmarkを揃え、閾値を満たす必要があります。FP32だけの合格をBF16/FP16へ転用しません。
+単一profileの数値reportはactivation dtypeを統一し、そのdtypeでstrength
+`.05/.1/.2` の証拠を揃えます。dtypeの別名は正規化しますが、FP16とBF16の
+混在reportは拒否します。
+
+## 出典
+
+[Krea2モデル](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/ldm/krea2/model.py)、
+[Attention API](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/ldm/modules/attention.py)、
+[wrapper](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/patcher_extension.py)、
+[sampler](https://github.com/Comfy-Org/ComfyUI/blob/9d80841aa1990305cc7a280c5ea505f317efcc2d/comfy/samplers.py)。
+
+[PyTorch 2.10 SDPA](https://docs.pytorch.org/docs/2.10/generated/torch.nn.functional.scaled_dot_product_attention.html)の
+明示scale、dropout=0、math経路のFP32中間計算を基準にしています。SDPA呼び出し成功だけで
+FlashAttention使用や高速化を主張しません。
+
+[公式Turbo workflow](https://github.com/Comfy-Org/workflow_templates/blob/main/templates/image_krea2_turbo_t2i.json)
+の2026-09-30取得版SHA-256:
 `8688a4fe39292924761b184d9bc1ad6a62817c55fb0de704becca041150fac69`。
+例では任意LoRAとprompt enhancementを省き、標準loader/conditioning/sampler構成を使っています。
