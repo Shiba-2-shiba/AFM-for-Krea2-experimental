@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-krea2-afm"
+version = "0.1.0"
+description = "Experimental Krea2 attention diagnostics for ComfyUI"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-m 'not gpu'"
+markers = ["gpu: opt-in real ComfyUI and Krea2 GPU integration"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
