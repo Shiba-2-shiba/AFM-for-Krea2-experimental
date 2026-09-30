@@ -63,3 +63,36 @@ Test evidence and final review findings are appended during implementation.
 
 Task 1 exposes no edit settings or pretend implementation. The intermediate
 GPU gate and Tasks 2–5 are still open, as required by the supplied plan.
+
+## Final review
+
+Independent code review identified five important issues. Each was reproduced
+with a failing test before its fix:
+
+1. Live patch inventory now rejects post-AFM post_input/QKV/output hooks before
+   forward; only the exact AFM post_input hook is permitted.
+2. Node log paths are resolved beneath `output/krea2_afm/`, with `.jsonl` suffix;
+   absolute/traversal/resolved escapes are rejected. Resolved-escape tests
+   simulate filesystem redirection; they do not create a privileged Windows symlink.
+3. Malformed branch metadata is recorded as null with an unsupported reason;
+   it cannot trigger JSON serialization failure after container consumption.
+4. Summary I/O failure no longer masks an existing backend exception; a log
+   failure on otherwise-successful sampling still surfaces.
+5. Multi-GPU is detected from prepared clone options or registered additional
+   models before upstream creates its thread pool.
+
+Final: minor (deferred): object_info checker may raise AttributeError when a
+linked source node is a malformed non-dict, instead of returning an error list.
+This does not affect the shipped valid API examples or runtime node.
+
+Final: Ruling: edit kernels, real-model/GPU execution, quality and performance
+were outside this diagnostic review. They remain explicit open milestones,
+not implied support. Cost: no AFM edit or GPU capability can be claimed yet.
+
+No inference, weights, external publication, merge or remote push was performed.
+
+Final verification after fixes: **95 passed** with the optional source-contract
+tests enabled; `compileall` and `git diff --check` passed; all three API examples
+passed graph-only validation. No dedicated linter/type checker or live
+`/object_info` validation was run. Work remains in the requested directory on
+`diagnostic/krea2-afm`; there was no existing base branch or remote to integrate.

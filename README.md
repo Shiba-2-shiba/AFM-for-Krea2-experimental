@@ -49,6 +49,8 @@ python -m compileall -q afm nodes.py __init__.py
 
 既定のログ先は ComfyUI の `output/krea2_afm/diagnostics.jsonl`。各 run に固有の
 `run_id` が付き、`run_start`、`attention`、`run_summary` を追記します。
+保存先は `krea2_afm/任意名.jsonl` の相対パスで指定します。専用フォルダーの外、
+絶対パス、`..`、解決後に外部を指すパスは拒否します。
 `jsonl_path` を空にするとファイル出力を無効化します。`debug_level=summary` は
 開始・集計をコンソールにも表示し、`verbose` は各呼び出しも表示します。
 

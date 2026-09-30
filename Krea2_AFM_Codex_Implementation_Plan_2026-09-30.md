@@ -16,6 +16,8 @@
 
 **状態:** ソース解析に基づく実装前の計画。実モデルの推論、GPU上の速度・VRAM測定、生成品質の確認は未実施。
 
+**実装進捗追記（2026-09-30）:** Task 0–1のローカル診断版を実装。今回のユーザー指定により実モデル検証は行わない。GPU中間判定とTask 2以降は未着手。検証根拠・差分判断は `docs/implementation-status.md` を参照。以下の設計仕様は原案として保持する。
+
 ## Global Constraints
 
 - 新規リポジトリ名の案は `ComfyUI-Krea2-AFM`、ノードIDは `Krea2AFMModelPatch`、表示名は `Krea2 AFM Model Patch`。既存Animaノードとは別パッケージにする。
@@ -350,13 +352,13 @@ FP8/INT8の重みでもFFTまで低精度化しない。低精度モデルの全
 
 **Interfaces:** `detect_krea2(model_patcher) -> Krea2Capabilities`、`validate_config(config: AFMConfig, caps: Krea2Capabilities) -> None`、`detect_patch_conflicts(model_patcher) -> list[str]`。
 
-- [ ] Animaと一般Fluxを拒否し、Krea2の構造・属性を確認する `test_reject_non_krea2` を書く。単に `.blocks` を持つだけのmockをKrea2と扱わない。
-- [ ] `test_scope_and_window_validation` で `start > end`、存在しないblock index、head/query chunkが0、NaN strengthを拒否する。
-- [ ] `python -m pytest tests/test_capabilities.py -q` で失敗を確認する。
-- [ ] config、モデル判定、必要APIの機能検出を実装する。新パッケージからAnimaノードをimportしない。`implementation`、zero対照、fail_modeのenumを固定し、SDPAの明示scale非対応を検出する。
-- [ ] 移植元・参考元のライセンスと転用箇所を記録し、必要なLICENSE／NOTICEを同梱する。
-- [ ] 同コマンドで全PASSを確認し、対応を確認したComfyUI commitと、まだGPUで未確認の項目を記録する。
-- [ ] `feat: add Krea2 AFM capability detection` としてcommitする。
+- [x] Animaと一般Fluxを拒否し、Krea2の構造・属性を確認する `test_reject_non_krea2` を書く。単に `.blocks` を持つだけのmockをKrea2と扱わない。
+- [x] `test_scope_and_window_validation` で `start > end`、存在しないblock index、head/query chunkが0、NaN strengthを拒否する。
+- [x] `python -m pytest tests/test_capabilities.py -q` で失敗を確認する。
+- [x] config、モデル判定、必要APIの機能検出を実装する。新パッケージからAnimaノードをimportしない。`implementation`、zero対照、fail_modeのenumを固定し、SDPAの明示scale非対応を検出する。
+- [x] 移植元・参考元のライセンスと転用箇所を記録し、必要なLICENSE／NOTICEを同梱する。
+- [x] 同コマンドで全PASSを確認し、対応を確認したComfyUI commitと、まだGPUで未確認の項目を記録する。
+- [x] `feat: add Krea2 AFM capability detection` としてcommitする。
 
 ### Task 1：診断用runtime・layout・baseline dispatch
 
@@ -370,16 +372,18 @@ FP8/INT8の重みでもFFTまで低精度化しない。低精度モデルの全
 
 wrapperはComfyUIのexecutorを第1引数に取り、元の引数を維持してexecutorを呼ぶ。post_inputはpayloadを返し、その実行用 `transformer_options` にmetadataとoverrideを設置する。
 
-- [ ] `test_grid_uses_patch_padding`：latentが `[1,16,65,97]`、patch=2、text=5ならgrid `(33,49)`、画像数 `1617`、image slice `(5,1622)` である。
-- [ ] `test_single_frame_5d_matches_4d`：`T=1` は同じlayout、`T>1` とreference付きは対象外になる。
-- [ ] `test_post_input_rejects_reordered_or_extra_tokens`：row-majorでない `img_ids`、予期しないtoken増減を拒否する。`test_attention_rejects_img_slice_mismatch` では、post_inputの後に本体が設定する `img_slice` をoverride入口で検証する。
-- [ ] `test_preferred_backend_preserved`：module preferred backendとglobal defaultが異なるfixtureで、observeはpreferredを1回だけ呼ぶ。
-- [ ] `test_container_consumed_once`、`test_txtfusion_has_no_override`、`test_run_state_isolated_after_exception` を書く。後者は2つのcloneと連続runで異なるrun_idを確認する。
-- [ ] `python -m pytest tests/test_runtime.py tests/test_backend.py -q` で失敗を確認する。
-- [ ] runtime、元dispatch、discover／observeを実装する。sigma情報を全GPU Tensorのログ出力に展開しない。
+- [x] `test_grid_uses_patch_padding`：latentが `[1,16,65,97]`、patch=2、text=5ならgrid `(33,49)`、画像数 `1617`、image slice `(5,1622)` である。
+- [x] `test_single_frame_5d_matches_4d`：`T=1` は同じlayout、`T>1` とreference付きは対象外になる。
+- [x] `test_post_input_rejects_reordered_or_extra_tokens`：row-majorでない `img_ids`、予期しないtoken増減を拒否する。`test_attention_rejects_img_slice_mismatch` では、post_inputの後に本体が設定する `img_slice` をoverride入口で検証する。
+- [x] `test_preferred_backend_preserved`：module preferred backendとglobal defaultが異なるfixtureで、observeはpreferredを1回だけ呼ぶ。
+- [x] `test_container_consumed_once`、`test_txtfusion_has_no_override`、`test_run_state_isolated_after_exception` を書く。後者は2つのcloneと連続runで異なるrun_idを確認する。
+- [x] `python -m pytest tests/test_runtime.py tests/test_backend.py -q` で失敗を確認する。
+- [x] runtime、元dispatch、discover／observeを実装する。sigma情報を全GPU Tensorのログ出力に展開しない。
 - [ ] 最小の診断ノードとAPI workflowを用意する。クラウドの `/object_info` から実際のloader／sampler入力名を確認して作る。
-- [ ] 同コマンドで全PASSを確認する。正常終了と例外終了の両方でrun summaryを1回だけ出す。
-- [ ] `feat: add Krea2 AFM observe runtime` としてcommitする。
+- [x] 同コマンドで全PASSを確認する。正常終了と例外終了の両方でrun summaryを1回だけ出す。
+- [x] `feat: add Krea2 AFM observe runtime` としてcommitする。
+
+実装追記: 診断ノードとAPI workflowは作成済み。上記のクラウド `/object_info` 照合は今回未実施のため、その項目は未完了のままとする。元backend保持とcontainer一回消費は共通のパラメータ化テストで検証。
 
 **クラウドでの中間判定:** この段階の診断ノードを試し、true baselineとobserveの再現性、txtfusion除外、block index、text/image長、grid、preferred backendを確認する。実際のログが設計と合わなければ編集実装より先にlayout／dispatchを修正する。
 

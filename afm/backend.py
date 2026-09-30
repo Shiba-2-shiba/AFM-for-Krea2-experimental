@@ -114,6 +114,10 @@ class Krea2AFMAttentionOverride:
                                                     self.config.branch_mode)
         if branch_reason:
             state.reasons[branch_reason] += 1
+        # Unrecognized metadata is never guessed to be positive, nor serialized
+        # verbatim (it can contain tensors or arbitrary host objects).
+        branch_metadata = (None if branch_reason == "unsupported_branch_layout"
+                           else list(options["cond_or_uncond"]))
         progress = progress_from_sigmas(options)
         in_window = progress is not None and (
             self.config.start_percent <= progress.progress <= self.config.end_percent)
@@ -139,7 +143,7 @@ class Krea2AFMAttentionOverride:
             "text_tokens": layout.text_slice[1], "image_tokens": math.prod(layout.grid),
             "grid": list(layout.grid), "img_slice": list(layout.image_slice),
             "gqa_expanded": query.shape[1] == key.shape[1] == value.shape[1],
-            "cond_or_uncond": options.get("cond_or_uncond"), "selected_batch_rows": list(selected),
+            "cond_or_uncond": branch_metadata, "selected_batch_rows": list(selected),
             "branch_reason": branch_reason, "in_window": in_window, "mask_present": mask_present,
             "scope": self.config.block_scope, "edit_applied": False,
             "baseline_backend": _backend_name(backend), "preferred_backend": preferred is not None,

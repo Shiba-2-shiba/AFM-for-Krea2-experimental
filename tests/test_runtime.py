@@ -193,3 +193,71 @@ def test_install_clone_and_conflict(host):
 def test_edit_is_explicitly_unimplemented(host, strength):
     with pytest.raises(NotImplementedError, match="diagnostic"):
         install_krea2_afm(host, AFMConfig(mode="edit", strength=strength))
+
+
+@pytest.mark.parametrize("patch_name", ["post_input", "attn1_patch", "attn1_output_patch"])
+def test_patch_added_after_afm_is_rejected_before_forward(host, patch_name):
+    clone = install_krea2_afm(host, AFMConfig())
+    options = clone.model_options["transformer_options"]
+    options.setdefault("patches", {}).setdefault(patch_name, []).append(lambda *a, **k: None)
+    options[RUN_KEY] = RunState()
+    called = []
+    wrapper = options["wrappers"]["diffusion_model"]["krea2_afm"][0]
+    def forward(*args, **kwargs):
+        called.append(True)
+        return args[0]
+    with pytest.raises(ValueError, match="conflict"):
+        wrapper(Executor(clone.model.diffusion_model, forward), torch.zeros(1, 16, 4, 6),
+                torch.ones(1), torch.zeros(1, 3, 8), transformer_options=options)
+    assert not called
+
+
+def test_summary_io_failure_does_not_mask_primary_error(host, monkeypatch):
+    import afm.runtime as runtime
+    attempted = []
+    def emitter(settings, run_id, event, **kwargs):
+        attempted.append(event)
+        if event == "run_summary":
+            raise OSError("log disk unavailable")
+    monkeypatch.setattr(runtime, "emit_record", emitter)
+    original = host.model_options
+    guider = SimpleNamespace(model_options=original)
+    states = []
+    def sample(*args, **kwargs):
+        states.append(guider.model_options["transformer_options"][RUN_KEY])
+        raise RuntimeError("primary backend error")
+    with pytest.raises(RuntimeError, match="primary backend error"):
+        make_outer_sample_wrapper(AFMConfig())(Executor(guider, sample))
+    assert attempted == ["run_start", "run_summary"]
+    assert guider.model_options is original
+    assert states[0].finished
+
+
+def test_summary_failure_is_reported_on_successful_sample(host, monkeypatch):
+    import afm.runtime as runtime
+    def emitter(settings, run_id, event, **kwargs):
+        if event == "run_summary":
+            raise OSError("summary unavailable")
+    monkeypatch.setattr(runtime, "emit_record", emitter)
+    guider = SimpleNamespace(model_options=host.model_options)
+    with pytest.raises(OSError, match="summary unavailable"):
+        make_outer_sample_wrapper(AFMConfig())(Executor(guider, lambda: 42))
+    assert guider.model_options is host.model_options
+
+
+@pytest.mark.parametrize("signal", ["clone_options", "registered_models"])
+def test_multigpu_rejected_before_outer_sample_creates_pool(host, signal):
+    options = host.model_options
+    if signal == "clone_options":
+        options["multigpu_clones"] = {"cuda:1": object()}
+    else:
+        host.get_additional_models_with_key = lambda key: [object()] if key == "multigpu" else []
+    guider = SimpleNamespace(model_options=options, model_patcher=host)
+    entered = []
+    def sample():
+        entered.append(True)
+        guider.model_options["multigpu_thread_pool"] = object()
+    with pytest.raises(AFMUnsupportedError, match="multi_gpu_not_supported"):
+        make_outer_sample_wrapper(AFMConfig())(Executor(guider, sample))
+    assert not entered
+    assert guider.model_options is options

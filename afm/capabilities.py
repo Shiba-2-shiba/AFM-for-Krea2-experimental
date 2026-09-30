@@ -82,15 +82,20 @@ def detect_krea2(model_patcher) -> Krea2Capabilities:
                              _sdpa_has_explicit_scale())
 
 
-def detect_patch_conflicts(model_patcher) -> list[str]:
-    opts = model_patcher.model_options.get("transformer_options", {})
+def detect_transformer_conflicts(opts: dict, own_config=None) -> list[str]:
     conflicts = []
-    if CONFIG_KEY in opts:
+    if CONFIG_KEY in opts and own_config is None:
         conflicts.append("duplicate Krea2 AFM patch")
     if opts.get("optimized_attention_override") is not None:
         conflicts.append("optimized_attention_override")
-    for key in ("post_input", "attn1_patch", "attn1_output_patch", "attn2_patch",
-                "attn2_output_patch"):
+    post_input = opts.get("patches", {}).get("post_input", [])
+    if own_config is None:
+        if post_input:
+            conflicts.append("post_input")
+    elif (any(getattr(patch, "_krea2_afm_config", None) is not own_config for patch in post_input)
+          or len(post_input) > 1 or (CONFIG_KEY in opts and len(post_input) != 1)):
+        conflicts.append("post_input (only AFM's own hook is supported)")
+    for key in ("attn1_patch", "attn1_output_patch", "attn2_patch", "attn2_output_patch"):
         if opts.get("patches", {}).get(key):
             conflicts.append(key)
     if opts.get("patches_replace"):
@@ -98,6 +103,18 @@ def detect_patch_conflicts(model_patcher) -> list[str]:
     for wrappers in opts.get("wrappers", {}).values():
         if WRAPPER_KEY in wrappers and CONFIG_KEY not in opts:
             conflicts.append("duplicate Krea2 AFM wrapper")
-    if model_patcher.model_options.get("multigpu_thread_pool") is not None:
+    return conflicts
+
+
+def multigpu_enabled(model_patcher, model_options: dict) -> bool:
+    if "multigpu_clones" in model_options or model_options.get("multigpu_thread_pool") is not None:
+        return True
+    getter = getattr(model_patcher, "get_additional_models_with_key", None)
+    return bool(getter("multigpu")) if callable(getter) else False
+
+
+def detect_patch_conflicts(model_patcher) -> list[str]:
+    conflicts = detect_transformer_conflicts(model_patcher.model_options.get("transformer_options", {}))
+    if multigpu_enabled(model_patcher, model_patcher.model_options):
         conflicts.append("multi-GPU")
     return conflicts

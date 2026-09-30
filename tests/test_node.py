@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture
 def node_module(monkeypatch, host, tmp_path):
-    """V3 schema double; source-contract test separately checks actual io syntax."""
+    """Minimal V3 schema double; not a substitute for a real ComfyUI load."""
     class Input:
         def __init__(self, name, **kwargs):
             self.name = name
@@ -63,3 +63,33 @@ def test_node_clones_model(node_module, host):
 def test_node_refuses_edit_even_via_api(node_module, host):
     with pytest.raises(NotImplementedError, match="diagnostic"):
         node_module.execute(host, mode="edit")
+
+
+@pytest.mark.parametrize("path", ["../escape.jsonl", "krea2_afm/../../escape.jsonl",
+                                  "other/log.jsonl", "krea2_afm/file.txt"])
+def test_log_path_is_confined_to_diagnostic_directory(node_module, host, path):
+    with pytest.raises(ValueError, match="jsonl_path"):
+        node_module.execute(host, jsonl_path=path)
+
+
+def test_absolute_log_path_rejected(node_module, host, tmp_path):
+    with pytest.raises(ValueError, match="jsonl_path"):
+        node_module.execute(host, jsonl_path=str(tmp_path / "outside.jsonl"))
+
+
+def test_log_path_follows_output_directory(node_module, host, tmp_path):
+    patched = node_module.execute(host, jsonl_path="krea2_afm/run.jsonl").result[0]
+    config = patched.model_options["transformer_options"]["krea2_afm_config"]
+    assert Path(config.jsonl_path) == tmp_path / "krea2_afm" / "run.jsonl"
+
+
+def test_log_path_rejects_resolved_escape(node_module, host, tmp_path, monkeypatch):
+    original_resolve = Path.resolve
+    redirected = tmp_path / "krea2_afm" / "redirect" / "run.jsonl"
+    def resolve(path, *args, **kwargs):
+        if path == redirected:
+            return tmp_path / "outside" / "run.jsonl"
+        return original_resolve(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "resolve", resolve)
+    with pytest.raises(ValueError, match="jsonl_path"):
+        node_module.execute(host, jsonl_path="krea2_afm/redirect/run.jsonl")

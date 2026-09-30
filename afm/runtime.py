@@ -2,11 +2,15 @@
 from collections import Counter
 from dataclasses import dataclass, field
 import time
+import logging
 from uuid import uuid4
 
 import torch
 
-from .capabilities import CONFIG_KEY, WRAPPER_KEY, detect_krea2, detect_patch_conflicts
+from .capabilities import (
+    CONFIG_KEY, WRAPPER_KEY, detect_krea2, detect_patch_conflicts,
+    detect_transformer_conflicts, multigpu_enabled,
+)
 from .config import AFMConfig, validate_config
 from .diagnostics import configuration_metadata, emit_record, environment_metadata
 
@@ -145,7 +149,7 @@ def make_outer_sample_wrapper(config: AFMConfig):
         original = guider.model_options
         if RUN_KEY in original.get("transformer_options", {}):
             raise RuntimeError("Nested Krea2 AFM sampling is unsupported")
-        if original.get("multigpu_thread_pool") is not None:
+        if multigpu_enabled(getattr(guider, "model_patcher", None), original):
             raise AFMUnsupportedError("multi_gpu_not_supported")
         # Only this run's guider gets state. Native nested dict/list clones
         # intentionally carry the same RunState object through sigma/CFG calls.
@@ -170,14 +174,20 @@ def make_outer_sample_wrapper(config: AFMConfig):
             guider.model_options = original
             options["transformer_options"].pop(RUN_KEY, None)
             state.finished = True
-            emit_record(config, state.run_id, "run_summary", status=status, error_type=error_type,
-                        model_evaluations=state.model_evaluations,
-                        attention_calls=state.attention_calls, observed_calls=state.observed_calls,
-                        edited_calls=state.edited_calls, reasons=dict(state.reasons),
-                        wall_seconds=time.perf_counter() - started,
-                        timing_scope="outer_sample_unsynchronized_diagnostic",
-                        peak_allocated_bytes=None, peak_reserved_bytes=None,
-                        memory_measurement="not_measured")
+            try:
+                emit_record(config, state.run_id, "run_summary", status=status, error_type=error_type,
+                            model_evaluations=state.model_evaluations,
+                            attention_calls=state.attention_calls, observed_calls=state.observed_calls,
+                            edited_calls=state.edited_calls, reasons=dict(state.reasons),
+                            wall_seconds=time.perf_counter() - started,
+                            timing_scope="outer_sample_unsynchronized_diagnostic",
+                            peak_allocated_bytes=None, peak_reserved_bytes=None,
+                            memory_measurement="not_measured")
+            except Exception:
+                if error_type is None:
+                    raise
+                logging.getLogger("krea2_afm").exception(
+                    "Summary logging failed for run %s; preserving %s", state.run_id, error_type)
     return outer_sample
 
 
@@ -186,6 +196,9 @@ def make_diffusion_wrapper(config: AFMConfig):
                   transformer_options=None, **kwargs):
         options = dict(transformer_options or {})
         state = _require_state(options)
+        conflicts = detect_transformer_conflicts(options, own_config=config)
+        if conflicts:
+            raise ValueError("Krea2 AFM runtime conflict: " + ", ".join(conflicts))
         progress = progress_from_sigmas(options)
         options[EVAL_KEY] = state.next_evaluation(progress)
         if progress is None:
@@ -201,8 +214,6 @@ def make_diffusion_wrapper(config: AFMConfig):
                 raise AFMUnsupportedError("reference_not_supported")
             if options.get("reference_image_num_tokens"):
                 raise AFMUnsupportedError("reference_not_supported")
-            if "optimized_attention_override" in options:
-                raise ValueError("Krea2 AFM conflict: runtime optimized_attention_override")
             if context.ndim != 3 or context.shape[0] != x.shape[0]:
                 raise AFMUnsupportedError("unsupported_layout", "conditioning shape")
             options[LAYOUT_KEY] = layout_from_latent(x, model.patch, context.shape[1])
@@ -241,6 +252,7 @@ def make_post_input_patch(config: AFMConfig):
         options[LAYOUT_KEY] = layout
         options["optimized_attention_override"] = Krea2AFMAttentionOverride(config)
         return payload
+    post_input._krea2_afm_config = config
     return post_input
 
 

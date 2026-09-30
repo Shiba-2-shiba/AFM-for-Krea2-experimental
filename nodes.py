@@ -29,7 +29,7 @@ class Krea2AFMModelPatch(io.ComfyNode):
                 io.Combo.Input("fail_mode", options=["raise", "fallback_original"], default="raise"),
                 io.Combo.Input("debug_level", options=["off", "summary", "verbose"], default="summary"),
                 io.String.Input("jsonl_path", default="krea2_afm/diagnostics.jsonl",
-                                tooltip="Relative to ComfyUI output, or absolute. Empty disables file logging."),
+                                tooltip="A .jsonl path under output/krea2_afm/. Empty disables file logging."),
             ],
             outputs=[io.Model.Output(display_name="model")],
         )
@@ -39,10 +39,13 @@ class Krea2AFMModelPatch(io.ComfyNode):
                 start_percent=0.0, end_percent=1.0, fail_mode="raise", debug_level="summary",
                 jsonl_path="krea2_afm/diagnostics.jsonl") -> io.NodeOutput:
         if jsonl_path:
-            path = Path(jsonl_path).expanduser()
-            if not path.is_absolute():
-                import folder_paths
-                path = Path(folder_paths.get_output_directory()) / path
+            import folder_paths
+            relative = Path(jsonl_path)
+            output_root = Path(folder_paths.get_output_directory()).resolve()
+            path = (output_root / relative).resolve()
+            if (relative.is_absolute() or ".." in relative.parts or relative.suffix != ".jsonl"
+                    or not path.is_relative_to(output_root / "krea2_afm")):
+                raise ValueError("jsonl_path must be a relative .jsonl path under krea2_afm/")
             jsonl_path = str(path)
         config = AFMConfig(mode=mode, block_scope=block_scope, branch_mode=branch_mode,
                            start_percent=start_percent, end_percent=end_percent,

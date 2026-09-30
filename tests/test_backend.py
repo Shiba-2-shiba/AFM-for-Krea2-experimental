@@ -123,3 +123,26 @@ def test_discover_ignores_block_scope(host, mode, expected):
     assert Krea2AFMAttentionOverride(AFMConfig(mode=mode, block_scope="0"))(
         None, q, q, q, 4, transformer_options=options, skip_reshape=True) is baseline
     assert options[RUN_KEY].observed_calls == expected
+
+
+@pytest.mark.parametrize("branches", [torch.tensor([0]), [object()], object()])
+def test_malformed_branch_metadata_stays_json_safe(host, tmp_path, branches):
+    import json
+    path = tmp_path / "branch.jsonl"
+    baseline = torch.randn(1, 9, 32)
+    calls = []
+    def backend(*args, **kwargs):
+        calls.append(1)
+        return baseline
+    options = attention_options(backend)
+    options["cond_or_uncond"] = branches
+    qkv = [Container(torch.zeros(1, 4, 9, 8)) for _ in range(3)]
+    override = Krea2AFMAttentionOverride(AFMConfig(jsonl_path=str(path)))
+    result = override.container_function(*qkv, 4, transformer_options=options, skip_reshape=True)
+    assert result is baseline
+    assert calls == [1]
+    assert all(value.takes == 1 for value in qkv)
+    record = json.loads(path.read_text())
+    assert record["cond_or_uncond"] is None
+    assert record["selected_batch_rows"] == []
+    assert record["branch_reason"] == "unsupported_branch_layout"

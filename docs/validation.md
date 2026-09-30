@@ -47,6 +47,7 @@ API JSON を `/prompt` に渡す場合は `{"prompt": <API JSON>}` の形で包�
 - `progress` は実際の `sample_sigmas` の評価点。対応しないsigmaを最近傍へ丸めない。
   未対応の場合は `unsupported_progress` と null を記録して観測を続ける。
 - `cond_or_uncond` が欠ける場合、positiveと推測せず選択行を空にする。
+  型が不正な場合も選択せず、値そのものをダンプせずnullと理由を記録する。
 - 現行container API / 従来Tensor APIの両方を扱い、`peek()` による形状検査後に
   baseline dispatchが一度だけ消費する。observeの戻り値はbaselineと同じTensor。
 - `max_logits_delta`, 周波数指標、編集backendなどの未測定値は null。
@@ -57,6 +58,16 @@ API JSON を `/prompt` に渡す場合は `{"prompt": <API JSON>}` の形で包�
   API promptを実行記録と一緒に保存する。ComfyUI git情報が取得できない場合もunknown。
 - マルチGPU、torch.compile、reference、複数フレーム、他Attentionパッチとの併用を
   保証しない。検出可能な条件は拒否する。
+  AFM設置後に追加されたpost_input/QKV/outputパッチもforward前に拒否する。
+- sampling例外とsummary保存失敗が同時に発生した場合、元のsampling例外を維持し、
+  二次的なログ失敗をコンソールへ記録する。summaryの試行は1回。
+- ノードからのJSONL保存先はComfyUI output内の `krea2_afm/` に限定する。
+  絶対パス・traversal・解決後の範囲外パスを拒否する。内部Python APIの
+  `AFMConfig.jsonl_path` は信頼された呼び出し元向けで、ノード入力用ではない。
+
+既知の小課題: `validate_workflow.py --object-info` で、リンク先ノードがdictではない
+壊れたJSONを渡すと、検証エラー一覧の代わりにAttributeErrorで終了する場合があります。
+同梱の3つのAPI例はこの条件に該当しません。
 
 ## ソースだけで行う上流契約テスト
 
