@@ -42,10 +42,15 @@ def test_examples_match_v3_node_schema(node_module):
         assert required <= inputs <= fields
 
 
-def test_legacy_fixture_bytes_are_pinned_to_944e507():
+@pytest.mark.parametrize("checkout_newline", [b"\n", b"\r\n"])
+def test_legacy_fixture_lf_normalized_bytes_are_pinned_to_944e507(checkout_newline):
     assert {path.name for path in LEGACY.iterdir()} == set(LEGACY_SHA256)
     for name, expected in LEGACY_SHA256.items():
-        assert hashlib.sha256((LEGACY / name).read_bytes()).hexdigest() == expected
+        # Git checkout may convert LF to CRLF. Normalize only that spelling;
+        # JSON whitespace, key order and all other content remain byte-pinned.
+        contents = (LEGACY / name).read_bytes().replace(b"\r\n", b"\n")
+        checkout = contents.replace(b"\n", checkout_newline)
+        assert hashlib.sha256(checkout.replace(b"\r\n", b"\n")).hexdigest() == expected
 
 
 def _patch_object_info(node_module):

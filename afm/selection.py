@@ -79,6 +79,8 @@ def select_implementation(config: AFMConfig, runtime_signature: dict,
         return BackendSelection("augmented", "zero_control" if config.strength == 0 else "explicit_augmented")
     if requested != "auto":
         raise ValueError(f"Unknown implementation {requested!r}")
+    if config.normalization_mode == "preserve_text_mass":
+        return BackendSelection("manual", "normalization_requires_manual")
     if runtime_signature.get("sdpa_explicit_scale", False):
         for profile in profiles:
             if _matches(runtime_signature, profile):

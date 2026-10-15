@@ -24,10 +24,23 @@ METRICS = ("rho_text_raw", "rho_text_centered", "rho_text_radial_binned")
 DEFINED_KEYS = dict(zip(METRICS, ("raw", "centered", "radial_binned")))
 SEMANTIC_FIELDS = ("step_index", "block_index", "branch_kind", "head_index", "sample_index")
 PHYSICAL_FIELDS = ("step_index", "model_eval_index", "block_index", "branch", "head_index")
+SEMANTIC_CONFIG_FIELDS = (
+    "mode", "normalization_mode", "implementation", "strength", "schedule", "cutoff",
+    "soft_mask", "mask_width", "preserve_dc", "block_scope", "branch_mode",
+    "start_percent", "end_percent", "zero_strength_mode", "head_chunk_size",
+    "query_chunk_size", "max_workspace_mib", "augmented_precision",
+)
+SHARED_EDIT_FIELDS = (
+    "cutoff", "soft_mask", "mask_width", "preserve_dc", "block_scope", "branch_mode",
+    "start_percent", "end_percent", "head_chunk_size", "query_chunk_size",
+    "max_workspace_mib", "augmented_precision",
+)
 CONTRASTS = {
     "preserve_minus_baseline": ("preserve", "baseline"),
     "joint_minus_baseline": ("joint", "baseline"),
     "preserve_minus_joint": ("preserve", "joint"),
+    "preserve_minus_manual_zero": ("preserve", "manual_zero"),
+    "manual_zero_minus_baseline": ("manual_zero", "baseline"),
 }
 
 
@@ -36,7 +49,7 @@ def _finite(value):
 
 
 def _canonical(value):
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
 def _digest(value):
@@ -61,6 +74,8 @@ def _role(run):
     label = run.get("condition_role", run.get("role", run.get("control")))
     if label in ("baseline", "observe", "true_baseline"):
         return "baseline"
+    if label == "manual_zero":
+        return "manual_zero"
     mode = run.get("normalization_mode")
     if mode == "joint":
         return "joint"
@@ -70,7 +85,7 @@ def _role(run):
 
 
 def _config(run, report):
-    return {**run.get("afm_config", {}), **report.get("config", {})}
+    return {**report.get("config", {}), **run.get("afm_config", {})}
 
 
 def _expected_implementation(run, report, expected):
@@ -108,6 +123,17 @@ def _coverage(run, report):
     if report.get("schema_version") != 5:
         unknowns.append("schema 5 is required for paired spectral analysis")
     config = _config(run, report)
+    planned, actual = run.get("afm_config", {}), report.get("config", {})
+    for field in SEMANTIC_CONFIG_FIELDS:
+        if field not in planned or field not in actual:
+            unknowns.append("missing configuration provenance: " + field)
+        elif planned[field] != actual[field]:
+            failures.append("runtime configuration mismatch: " + field)
+    if _role(run) == "manual_zero" and not (
+            config.get("mode") == "edit" and config.get("strength") == 0
+            and config.get("zero_strength_mode") == "manual"
+            and config.get("normalization_mode") in ("joint", "preserve_text_mass")):
+        failures.append("invalid manual_zero control semantics")
     mode = run.get("normalization_mode")
     if mode not in ("joint", "preserve_text_mass"):
         unknowns.append("missing normalization mode")
@@ -299,12 +325,69 @@ def _stratum(run):
 
 
 def _comparison_group(run, report):
-    if run.get("comparison_group") is not None:
-        return run["comparison_group"]
     config = _config(run, report)
-    fields = ("strength", "schedule", "cutoff", "soft_mask", "mask_width", "preserve_dc",
-              "block_scope", "branch_mode", "start_percent", "end_percent")
-    return {field: config.get(field) for field in fields}
+    fields = ("strength", "schedule", *SHARED_EDIT_FIELDS)
+    group = {field: config.get(field) for field in fields}
+    # A caller's label may split groups, but must never erase real differences.
+    if run.get("comparison_group") is not None:
+        group["label"] = run["comparison_group"]
+    return group
+
+
+def _case_identity_verified(run):
+    case = run.get("case_identity")
+    if not isinstance(case, dict):
+        return False
+    if (type(case.get("seed")) is not int or case["seed"] < 0
+            or not isinstance(case.get("positive_text"), list) or not case["positive_text"]
+            or not all(isinstance(text, str) for text in case["positive_text"])
+            or not isinstance(case.get("negative_text"), list)
+            or not all(isinstance(text, str) for text in case["negative_text"])):
+        return False
+    models = case.get("model_components")
+    if (not isinstance(models, list) or not models
+            or any(not isinstance(model, dict) or not model.get("class_type")
+                   or not isinstance(model.get("identity"), dict) or not model["identity"]
+                   for model in models)):
+        return False
+    sampler, resolution = case.get("sampler"), case.get("resolution")
+    if (not isinstance(sampler, dict) or not sampler.get("sampler_name")
+            or not sampler.get("scheduler") or type(sampler.get("steps")) is not int
+            or sampler["steps"] <= 0 or not _finite(sampler.get("cfg"))
+            or not _finite(sampler.get("denoise")) or not 0 < sampler["denoise"] <= 1
+            or not isinstance(resolution, dict)
+            or any(type(resolution.get(field)) is not int or resolution[field] <= 0
+                   for field in ("width", "height", "batch_size"))):
+        return False
+    images = case.get("input_images")
+    return (isinstance(images, list)
+            and all(isinstance(image, dict) and isinstance(image.get("sha256"), str)
+                    and len(image["sha256"]) == 64 for image in images))
+
+
+def _prompt_identity(run):
+    case = run["case_identity"]
+    return _digest({field: case[field] for field in ("positive_text", "negative_text")})
+
+
+def _runtime_contract(item, *, include_implementation):
+    """Compare actual call provenance on semantic coordinates, not physical CFG order."""
+    calls = {_index_key(event, ("step_index", "model_eval_index", "block_index")): event
+             for event in _events(item["report"], "attention") if isinstance(event, dict)}
+    contract = []
+    for semantic, event in sorted(item["observed"].items()):
+        call = calls.get(_index_key(event, ("step_index", "model_eval_index", "block_index")), {})
+        backend, dtype, scale = (call.get(field) for field in
+                                 ("baseline_backend", "activation_dtype", "original_scale"))
+        if (not isinstance(backend, str) or backend in ("", "unknown")
+                or not isinstance(dtype, str) or dtype in ("", "unknown")
+                or not _finite(scale) or scale <= 0):
+            return None
+        values = [list(semantic), backend, dtype, scale]
+        if include_implementation:
+            values.append(event.get("selected_implementation"))
+        contract.append(values)
+    return contract
 
 
 def _percentile(values, probability):
@@ -339,21 +422,33 @@ def _baseline_noise(items, metric):
     repeats = defaultdict(dict)
     for item in items:
         run = item["run"]
-        if item["role"] != "baseline" or item["coverage"]["status"] != "pass":
+        if item["role"] != "baseline":
             continue
         repeat = run.get("repeat_index", 0)
         pair = run.get("pair_id")
         if type(repeat) is int and repeat >= 0 and isinstance(pair, str):
-            if repeat in repeats[pair]:
-                repeats[pair][repeat] = None
-            else:
-                repeats[pair][repeat] = item["values"][metric]
+            repeats[pair][repeat] = None if repeat in repeats[pair] else item
     differences = []
     for values in repeats.values():
         reference = values.get(0)
-        if reference is not None:
-            differences.extend(value - reference for index, value in values.items()
-                               if index > 0 and value is not None)
+        for index, item in values.items():
+            if index == 0 or reference is None or item is None:
+                continue
+            selected = (reference, item)
+            if any(entry["coverage"]["status"] != "pass" or entry["values"][metric] is None
+                   or not _case_identity_verified(entry["run"]) for entry in selected):
+                continue
+            if any(entry["run"].get("prompt_text_sha256") != _prompt_identity(entry["run"])
+                   for entry in selected):
+                continue
+            cases = {_canonical(entry["run"]["case_identity"]) for entry in selected}
+            configs = {_canonical({field: entry["run"]["afm_config"][field]
+                                   for field in SEMANTIC_CONFIG_FIELDS}) for entry in selected}
+            contracts = [_runtime_contract(entry, include_implementation=True) for entry in selected]
+            if (len(cases) != 1 or len(configs) != 1 or any(value is None for value in contracts)
+                    or len({_canonical(value) for value in contracts}) != 1):
+                continue
+            differences.append(item["values"][metric] - reference["values"][metric])
     mean = math.fsum(differences) / len(differences) if differences else None
     variance = (math.fsum((value - mean) ** 2 for value in differences)
                 / (len(differences) - 1)) if len(differences) > 1 else None
@@ -380,7 +475,11 @@ def analyze_experiment(manifest: dict, reports: list[dict], *,
     result = {"schema_version": 1, "coverage": {}, "strata": {}, "metrics": {},
               "bootstrap_seed": bootstrap_seed, "bootstrap_samples": bootstrap_samples,
               "ci_method": "prompt_cluster_percentile_linear",
-              "primary_contrast": "preserve_minus_baseline", "adoption_decision": "not_evaluated"}
+              "primary_contrast": ("preserve_minus_manual_zero"
+                                   if any(isinstance(run, dict) and _role(run) == "manual_zero"
+                                          for run in manifest["runs"])
+                                   else "preserve_minus_baseline"),
+              "adoption_decision": "not_evaluated"}
     grouped = defaultdict(list)
     runtime_owners = Counter(run.get("runtime_run_id") for run in manifest["runs"]
                              if isinstance(run, dict) and run.get("runtime_run_id"))
@@ -406,19 +505,25 @@ def analyze_experiment(manifest: dict, reports: list[dict], *,
         values = {metric: _metric_value(observed, metric)
                   if coverage["status"] == "pass" else None for metric in METRICS}
         item = {"run": run, "report": report or {}, "role": role,
-                "values": values, "coverage": coverage}
+                "values": values, "coverage": coverage, "observed": observed}
         grouped[_canonical(_stratum(run))].append(item)
 
     for stratum_json, items in sorted(grouped.items()):
-        targets = [item for item in items if item["role"] != "baseline"
+        targets = [item for item in items if item["role"] not in ("baseline", "manual_zero")
                    and item["run"].get("repeat_index", 0) == 0]
-        groups = {_canonical(_comparison_group(item["run"], item["report"])) for item in targets}
+        target_contrasts = {name: roles for name, roles in CONTRASTS.items()
+                            if name != "manual_zero_minus_baseline"}
+        groups = {_canonical(_comparison_group(item["run"], item["report"])): target_contrasts
+                  for item in targets}
+        control_group = _canonical({"control_contrast": "manual_zero_minus_baseline"})
+        if any(item["role"] == "manual_zero" for item in items):
+            groups[control_group] = {"manual_zero_minus_baseline": ("manual_zero", "baseline")}
         if not groups:
-            groups = {_canonical(None)}
+            groups = {_canonical(None): target_contrasts}
         for group_json in sorted(groups):
             candidates = [item for item in items
                           if item["run"].get("repeat_index", 0) == 0
-                          and (item["role"] == "baseline"
+                          and (item["role"] in ("baseline", "manual_zero")
                                or _canonical(_comparison_group(item["run"], item["report"])) == group_json)]
             by_pair = defaultdict(lambda: defaultdict(list))
             for item in candidates:
@@ -427,32 +532,64 @@ def analyze_experiment(manifest: dict, reports: list[dict], *,
                     by_pair[pair_id][item["role"]].append(item)
             metrics = {}
             for metric in METRICS:
-                complete = []
-                excluded = Counter()
-                for roles in by_pair.values():
-                    if any(len(roles.get(role, [])) != 1 for role in ("baseline", "joint", "preserve")):
-                        excluded["missing_or_duplicate_condition"] += 1
-                        continue
-                    selected = {role: roles[role][0] for role in roles}
-                    statuses = {item["coverage"]["status"] for item in selected.values()}
-                    if statuses != {"pass"}:
-                        reason = "coverage_fail" if "fail" in statuses else "coverage_unverified"
-                        excluded[reason] += 1
-                        continue
-                    if any(item["values"][metric] is None for item in selected.values()):
-                        excluded["metric_undefined"] += 1
-                        continue
-                    prompts = {item["run"].get("prompt_text_sha256") for item in selected.values()}
-                    if len(prompts) != 1 or None in prompts:
-                        excluded["prompt_identity_mismatch"] += 1
-                        continue
-                    complete.append({"prompt": next(iter(prompts)),
-                                     **{role: item["values"][metric] for role, item in selected.items()}})
                 contrasts = {}
-                for name, (left, right) in CONTRASTS.items():
+                for name, (left, right) in groups[group_json].items():
+                    complete = []
+                    excluded = Counter()
+                    # Controls cannot invent target cases that the experiment never planned.
+                    target_roles = (left, right) if right == "joint" else (left,)
+                    expected_pairs = [roles for roles in by_pair.values()
+                                      if any(role in roles for role in target_roles)]
+                    for roles in expected_pairs:
+                        if any(len(roles.get(role, [])) != 1 for role in (left, right)):
+                            excluded["missing_or_duplicate_condition"] += 1
+                            continue
+                        selected = {role: roles[role][0] for role in (left, right)}
+                        statuses = {item["coverage"]["status"] for item in selected.values()}
+                        if statuses != {"pass"}:
+                            reason = "coverage_fail" if "fail" in statuses else "coverage_unverified"
+                            excluded[reason] += 1
+                            continue
+                        if any(item["values"][metric] is None for item in selected.values()):
+                            excluded["metric_undefined"] += 1
+                            continue
+                        if not all(_case_identity_verified(item["run"]) for item in selected.values()):
+                            excluded["case_identity_unverified"] += 1
+                            continue
+                        prompts = {_prompt_identity(item["run"]) for item in selected.values()}
+                        if (len(prompts) != 1
+                                or any(item["run"].get("prompt_text_sha256") != _prompt_identity(item["run"])
+                                       for item in selected.values())):
+                            excluded["prompt_identity_mismatch"] += 1
+                            continue
+                        cases = {_canonical(item["run"].get("case_identity"))
+                                 for item in selected.values()}
+                        if len(cases) != 1:
+                            excluded["case_identity_mismatch"] += 1
+                            continue
+                        if "manual_zero" in selected and "baseline" not in selected:
+                            control_configs = {_canonical({field: item["run"]["afm_config"][field]
+                                                           for field in (*SHARED_EDIT_FIELDS, "normalization_mode")})
+                                               for item in selected.values()}
+                            if len(control_configs) != 1:
+                                excluded["control_configuration_mismatch"] += 1
+                                continue
+                        contracts = [_runtime_contract(item, include_implementation="baseline" not in selected)
+                                     for item in selected.values()]
+                        if any(contract is None for contract in contracts):
+                            excluded["runtime_contract_unverified"] += 1
+                            continue
+                        if len({_canonical(contract) for contract in contracts}) != 1:
+                            excluded["runtime_contract_mismatch"] += 1
+                            continue
+                        complete.append({"prompt": next(iter(prompts)),
+                                         **{role: item["values"][metric]
+                                            for role, item in selected.items()}})
                     contrasts[name] = {
                         **_contrast(complete, left, right, bootstrap_seed, bootstrap_samples),
-                        "expected_pairs": len(by_pair), "complete_pairs": len(complete),
+                        "comparison_scope": ("practical_original_vs_edit_implementation" if "baseline" in (left, right)
+                                             else "matched_edit_implementation"),
+                        "expected_pairs": len(expected_pairs), "complete_pairs": len(complete),
                         "excluded_pairs": dict(excluded),
                         "ci_status": "complete_cases" if not excluded else "exploratory_missing_pairs",
                     }
@@ -493,7 +630,7 @@ def main(argv=None):
         args.out_csv.parent.mkdir(parents=True, exist_ok=True)
         with args.out_csv.open("w", encoding="utf-8", newline="") as stream:
             writer = csv.DictWriter(stream, fieldnames=[
-                "stratum_id", "metric", "contrast", "estimate", "ci_low", "ci_high",
+                "stratum_id", "metric", "contrast", "comparison_scope", "estimate", "ci_low", "ci_high",
                 "expected_pairs", "complete_pairs", "prompt_count", "ci_status"])
             writer.writeheader()
             for stratum_id, stratum in analysis["strata"].items():
@@ -502,6 +639,7 @@ def main(argv=None):
                         bounds = values["bootstrap_ci95"] or [None, None]
                         writer.writerow({
                             "stratum_id": stratum_id, "metric": metric, "contrast": contrast,
+                            "comparison_scope": values["comparison_scope"],
                             "estimate": values["estimate"], "ci_low": bounds[0], "ci_high": bounds[1],
                             **{key: values[key] for key in
                                ("expected_pairs", "complete_pairs", "prompt_count", "ci_status")},

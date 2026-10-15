@@ -33,7 +33,12 @@ class Krea2AFMModelPatch(io.ComfyNode):
                 io.Float.Input("strength", default=0.05, min=-1.0, max=2.0, step=0.01),
                 io.Combo.Input("implementation", options=["auto", "manual", "augmented"], default="auto"),
                 io.Float.Input("cutoff", default=0.25, min=0.01, max=0.99, step=0.01),
-                io.Combo.Input("schedule", options=["curve"], default="curve", advanced=True),
+                io.Combo.Input("schedule", options=["curve", "frequency_neutral"],
+                               default="curve", advanced=True,
+                               tooltip="curve shifts LF to HF gain. frequency_neutral uses "
+                                       "LF=HF=1+strength/2 with the same DC/normalization settings; "
+                                       "it does not match total edit magnitude and is not global "
+                                       "attention-temperature scaling."),
                 io.Boolean.Input("preserve_dc", default=True, advanced=True),
                 io.Boolean.Input("soft_mask", default=True, advanced=True),
                 io.Float.Input("mask_width", default=0.05, min=0.001, max=1.0, step=0.01, advanced=True),

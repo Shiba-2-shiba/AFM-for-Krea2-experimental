@@ -171,7 +171,7 @@ def test_preserve_minimum_workspace_boundary_is_enforced_without_partial_plan():
         )
 
 
-def test_explicit_diagnostic_heads_are_counted_independently_of_kernel_head_chunk():
+def test_sequential_diagnostic_heads_share_one_head_peak_workspace():
     layout = _layout(t=8, h=4, w=8)
     one = AFMConfig(
         head_chunk_size=1,
@@ -188,4 +188,5 @@ def test_explicit_diagnostic_heads_are_counted_independently_of_kernel_head_chun
         (1, 4, 40, 8), (1, 4, 40, 8), layout, selected, "manual", torch.float32
     )
     assert selected_plan.head_chunk_size == 1
-    assert selected_plan.estimated_workspace_mib > one_plan.estimated_workspace_mib
+    # Physical heads are processed sequentially, not retained as a stack.
+    assert selected_plan.estimated_workspace_mib == one_plan.estimated_workspace_mib

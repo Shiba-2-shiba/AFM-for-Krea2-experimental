@@ -237,3 +237,7 @@ paired集計CLIは完走したが、smokeは1 prompt/seedしかなく、rawの�
 - [成果物のSHA256一覧](validation-results/2026-10-15/artifacts.json)。元PNG・全JSONL/history・評価HTML・残りの比較画像はローカルoutputsに保持する。元PNGのhashは要約に記録した。
 
 製品コードとテストは変更せず、今回は検証記録と共有用証拠を追加した。全体の回帰gateは未合格、独立レビューは環境制約で未実施、GPU性能と一般的画質改善は未確定のままである。
+
+## 修正後の実機検証計画（2026-10-15）
+
+次の実機検証は [AFM修正後のCodex実機検証計画](hardware-validation-plan-2026-10-15.md) を参照。baselineとsame-kernel zero、4 prompt×4 seed×5条件の80画像Pilot、盲検評価、任意の16画像frequency-neutral対照、同期性能測定を段階的に行う計画であり、今回はGPU実行しない。修正後CPU検証と新しい実機証拠を上記の履歴から分離し、既存の失敗ログ・テスト数・画像を上書きしない。

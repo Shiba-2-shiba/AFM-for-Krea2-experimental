@@ -7,10 +7,19 @@ from .config import AFMConfig
 
 
 def schedule_alphas(config: AFMConfig, progress: float) -> tuple[float, float]:
-    if config.schedule != "curve":
+    """Return gains without changing the common DC or normalization semantics.
+
+    The opt-in frequency-neutral control removes LF/HF scheduling by applying
+    1 + strength / 2 to both bands. It does not match total edit magnitude or
+    implement a global attention-temperature change.
+    """
+    if config.schedule not in ("curve", "frequency_neutral"):
         raise ValueError(f"unsupported AFM schedule: {config.schedule!r}")
     if not math.isfinite(progress) or not 0.0 <= progress <= 1.0:
         raise ValueError("progress must be finite and in [0, 1]")
+    if config.schedule == "frequency_neutral":
+        gain = 1.0 + config.strength / 2.0
+        return gain, gain
     return (1.0 + config.strength * (1.0 - progress),
             1.0 + config.strength * progress)
 

@@ -194,3 +194,15 @@ def test_augmented_shared_validation_rejects_incompatible_qkv(mutation, reason):
     q, k, v = mutation(q, k, v)
     with pytest.raises((AFMUnsupportedError, ValueError, TypeError), match=reason):
         augmented_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
+
+@pytest.mark.parametrize("dtype", [torch.float64, torch.int64])
+def test_augmented_kv_rejects_mixed_or_nonfloating_dtype(dtype):
+    _, k, v, layout, *_ = _fixture()
+    with pytest.raises(AFMUnsupportedError, match="dtype|floating"):
+        build_augmented_kv(k, v.to(dtype), layout)
+
+@pytest.mark.parametrize("scale", [True, "0.2", torch.tensor(0.2), 0.0, -0.1, float("nan"), float("inf")])
+def test_augmented_rejects_nonpositive_or_nonreal_scale(scale):
+    q, k, v, layout, config, progress, chunks = _fixture()
+    with pytest.raises(AFMUnsupportedError, match="scale"):
+        augmented_image_rows(q, k, v, layout, config, progress, chunks, scale)

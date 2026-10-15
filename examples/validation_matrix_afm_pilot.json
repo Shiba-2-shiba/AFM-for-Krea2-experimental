@@ -1,0 +1,5153 @@
+{
+  "schema_version": 1,
+  "description": "Planned 80-image pilot, not execution evidence: 4 prompts x 4 seeds x 5 conditions. Original/off is an image-only native-path control; spectral coverage is unavailable for it. Dry-run is the runner default; no auto-submission.",
+  "design": {
+    "phase": "pilot",
+    "planned_images": 80,
+    "prompt_ids": [
+      "face_portrait",
+      "person_hands",
+      "detailed_still_life",
+      "spatial_objects"
+    ],
+    "seeds": [
+      20261015,
+      20261016,
+      20261017,
+      20261018
+    ],
+    "conditions": [
+      "original",
+      "manual_zero",
+      "preserve_1",
+      "preserve_1p5",
+      "preserve_2"
+    ],
+    "ratings": "afm_pilot_ratings.csv",
+    "rating_key": "afm_pilot_rating_key.csv",
+    "model_identity": "Set all three loader names explicitly for the approved hardware/model; freeze hashes separately.",
+    "interpretation": "Exploratory pilot. Same-call preservation does not guarantee invariant final composition. Preserve-minus-manual-zero spectral contrast is separate from blinded image ratings."
+  },
+  "runs": [
+    {
+      "id": "face_portrait-s20261015-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261015-original"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261015-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261015-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261015-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261015-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261015-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261015-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261015-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261015-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261016-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261016-original"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261016-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261016-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261016-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261016-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261016-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261016-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261016-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261016-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261017-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261017-original"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261017-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261017-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261017-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261017-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261017-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261017-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261017-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261017-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261018-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261018-original"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261018-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261018-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261018-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261018-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261018-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261018-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "face_portrait-s20261018-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A close-up editorial portrait of an adult woman, face centered, natural skin texture, individual eyelashes, fine hair strands, soft window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/face_portrait-s20261018-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261015-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261015-original"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261015-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261015-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261015-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261015-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261015-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261015-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261015-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261015-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261016-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261016-original"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261016-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261016-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261016-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261016-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261016-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261016-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261016-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261016-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261017-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261017-original"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261017-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261017-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261017-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261017-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261017-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261017-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261017-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261017-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261018-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261018-original"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261018-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261018-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261018-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261018-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261018-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261018-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "person_hands-s20261018-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "An adult seated at a wooden desk, both hands fully visible carefully folding a sheet of paper, face and fingers in focus, realistic anatomy, natural daylight, documentary photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/person_hands-s20261018-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261015-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261015-original"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261015-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261015-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261015-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261015-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261015-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261015-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261015-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261015-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261016-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261016-original"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261016-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261016-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261016-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261016-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261016-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261016-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261016-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261016-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261017-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261017-original"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261017-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261017-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261017-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261017-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261017-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261017-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261017-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261017-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261018-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261018-original"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261018-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261018-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261018-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261018-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261018-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261018-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "detailed_still_life-s20261018-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A still life of a woven linen cloth, a ripe orange with textured peel, and an engraved silver spoon on a wooden table, fine surface detail, soft side lighting, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/detailed_still_life-s20261018-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261015-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261015-original"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261015-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261015-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261015-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261015-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261015-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261015-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261015-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261015,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261015-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261016-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261016-original"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261016-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261016-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261016-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261016-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261016-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261016-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261016-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261016,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261016-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261017-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261017-original"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261017-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261017-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261017-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261017-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261017-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261017-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261017-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261017,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261017-preserve_2"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261018-original",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "original",
+      "condition_role": "baseline",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "off",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "off",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "off"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261018-original"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261018-manual_zero",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "manual_zero",
+      "condition_role": "manual_zero",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261018-manual_zero"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261018-preserve_1",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261018-preserve_1"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261018-preserve_1p5",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_1p5",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 1.5,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261018-preserve_1p5"
+        }
+      }
+    },
+    {
+      "id": "spatial_objects-s20261018-preserve_2",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20261018,
+      "control": "preserve_2",
+      "condition_role": "preserve_text_mass",
+      "phase": "pilot",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "3": {
+          "steps": 8,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1
+        },
+        "5": {
+          "width": 512,
+          "height": 512,
+          "batch_size": 1
+        },
+        "6": {
+          "text": "A red ceramic cup on the left and a blue glass vase on the right, a small green sphere in front of the vase, on a wooden table, natural window light, realistic photography."
+        },
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 2.0,
+          "schedule": "curve",
+          "block_scope": "all",
+          "branch_mode": "positive_only",
+          "start_percent": 0.0,
+          "end_percent": 1.0,
+          "zero_strength_mode": "manual",
+          "cutoff": 0.25,
+          "preserve_dc": true,
+          "soft_mask": true,
+          "mask_width": 0.05,
+          "head_chunk_size": 2,
+          "query_chunk_size": 128,
+          "max_workspace_mib": 512,
+          "augmented_precision": "activation",
+          "diagnostic_block_scope": "0,13,27",
+          "diagnostic_head_indices": "0,16,32,47",
+          "diagnostic_head_limit": 4,
+          "diagnostic_every_n_steps": 1,
+          "diagnostic_query_chunk_size": 128,
+          "diagnostic_top_k": 8,
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false,
+          "benchmark": false,
+          "fail_mode": "raise",
+          "debug_level": "summary",
+          "spectral_diag": "sampled"
+        },
+        "29": {
+          "filename_prefix": "krea2_afm/pilot/spatial_objects-s20261018-preserve_2"
+        }
+      }
+    }
+  ]
+}

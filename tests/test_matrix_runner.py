@@ -132,6 +132,11 @@ def test_execute_collects_only_images_from_requested_prompt_history(tmp_path):
             ("Krea2AFMModelPatch", "jsonl_path"),
         )
     }
+    schemas["Krea2AFMModelPatch"]["input"]["optional"] = {
+        "spectral_diag": [["off", "sampled"]],
+        "compare_kernels": ["BOOLEAN"],
+        "debug_level": [["off", "summary", "verbose"]],
+    }
 
     class Response:
         def __init__(self, payload):
@@ -342,6 +347,11 @@ def test_execute_links_each_run_to_its_own_mapped_log(tmp_path):
             ("KSampler", "seed"),
             ("Krea2AFMModelPatch", "jsonl_path"),
         )
+    }
+    schemas["Krea2AFMModelPatch"]["input"]["optional"] = {
+        "spectral_diag": [["off", "sampled"]],
+        "compare_kernels": ["BOOLEAN"],
+        "debug_level": [["off", "summary", "verbose"]],
     }
 
     class Response:

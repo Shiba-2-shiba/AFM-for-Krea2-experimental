@@ -215,3 +215,14 @@ def test_edited_attention_call_is_counted_as_observed(host):
             None, q, q, q, 4, transformer_options=options, skip_reshape=True)
     assert options[RUN_KEY].observed_calls == 1
     assert options[RUN_KEY].edited_calls == 1
+
+@pytest.mark.parametrize("scale", [True, "0.2", torch.tensor(0.2), 0.0, -0.1])
+def test_edit_backend_rejects_noncontract_scale_without_coercion(host, scale):
+    qkv = [torch.randn(1, 4, 9, 8) for _ in range(3)]
+    baseline = torch.zeros(1, 9, 32)
+    def preferred(*args, **kwargs):
+        return baseline
+    options = attention_options(preferred)
+    override = Krea2AFMAttentionOverride(AFMConfig(mode="edit", implementation="manual", fail_mode="raise"))
+    with pytest.raises(AFMUnsupportedError, match="unsupported_scale"):
+        override(preferred, *qkv, 4, transformer_options=options, skip_reshape=True, scale=scale)

@@ -146,6 +146,12 @@ def _parse_scope(value) -> list[int]:
 
 
 def _expected_coverage(graph: dict, afm: dict) -> dict:
+    if (afm.get("mode", "off") == "off" or afm.get("spectral_diag", "off") != "sampled"
+            or (afm.get("mode") == "edit" and afm.get("strength", 0.0) == 0
+                and afm.get("zero_strength_mode", "original") == "original")):
+        return {"protocol": None, "status": "unverified",
+                "reason": "no spectral runtime: AFM bypassed or spectral diagnostics disabled",
+                "semantic_keys": []}
     samplers = _nodes_by_type(graph, "KSampler")
     sampler = samplers[0][1].get("inputs", {}) if samplers else {}
     latent = _nodes_by_type(graph, "EmptyLatentImage") or _nodes_by_type(

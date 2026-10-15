@@ -64,7 +64,7 @@ def validate_config(config: AFMConfig, caps: "Krea2Capabilities") -> None:
         "mode": ("off", "discover", "observe", "edit"),
         "normalization_mode": ("joint", "preserve_text_mass"),
         "implementation": ("auto", "manual", "augmented"),
-        "schedule": ("curve",),
+        "schedule": ("curve", "frequency_neutral"),
         "branch_mode": ("positive_only", "negative_only", "both"),
         "zero_strength_mode": ("original", "manual", "augmented"),
         "spectral_diag": ("off", "sampled"),

@@ -241,7 +241,13 @@ def test_runtime_jsonl_is_grouped_by_run_and_maps_server_benchmark(tmp_path):
     assert reports[0]["run_id"] == "run-a"
     assert reports[0]["summary"]["edited_calls"] == 1
     assert reports[0]["comparisons"][0]["run_id"] == "run-a"
-    assert reports[0]["benchmark"]["manual"][0]["generation_seconds"] == 2.0
+    # Legacy config declares an intent, not the path that actually executed.
+    benchmark = reports[0]["benchmark"]
+    assert benchmark["manual"] == []
+    assert benchmark["actual_implementations"] == []
+    assert benchmark["unattributed_measurements"][0]["generation_seconds"] == 2.0
+    assert benchmark["unattributed_measurements"][0]["declared_implementation"] == "manual"
+    assert not qualify_profile(reports[0])
 
 
 def test_comparison_keys_are_namespaced_by_run_id():

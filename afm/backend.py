@@ -143,11 +143,8 @@ class Krea2AFMAttentionOverride:
         original_scale = kwargs.get("scale")
         if original_scale is None:
             original_scale = query.shape[-1] ** -.5
-        try:
-            original_scale = float(original_scale)
-            if not math.isfinite(original_scale):
-                original_scale = None
-        except (TypeError, ValueError, OverflowError):
+        if (isinstance(original_scale, bool) or not isinstance(original_scale, (int, float))
+                or not math.isfinite(original_scale) or original_scale <= 0):
             original_scale = None
         if original_scale is None and self.config.mode != "edit":
             raise AFMUnsupportedError("unsupported_scale", "invalid attention scale")

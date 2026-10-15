@@ -23,6 +23,10 @@ def build_augmented_kv(k: torch.Tensor, v: torch.Tensor, layout: TokenLayout) ->
             or k.ndim != 4 or v.ndim != 4 or k.shape != v.shape
             or k.shape[2] != layout.total_tokens):
         raise AFMUnsupportedError("unsupported_layout", "K/V must share [B,H,N,d]")
+    if k.device != v.device or k.dtype != v.dtype:
+        raise AFMUnsupportedError("unsupported_layout", "K/V device and dtype must match")
+    if not k.is_floating_point() or not v.is_floating_point():
+        raise AFMUnsupportedError("unsupported_layout", "K/V must be floating point")
     require_finite(k, "K")
     require_finite(v, "V")
     extra_k = torch.zeros_like(k)

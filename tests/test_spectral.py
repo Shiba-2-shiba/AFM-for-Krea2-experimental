@@ -19,6 +19,35 @@ def test_curve_schedule_endpoints():
     assert schedule_alphas(config, 0.5) == pytest.approx((1.05, 1.05))
 
 
+@pytest.mark.parametrize("strength", [-1.0, 0.0, 0.05, 0.2, 2.0])
+@pytest.mark.parametrize("progress", [0.0, 0.25, 0.5, 0.75, 1.0])
+def test_frequency_neutral_schedule_has_equal_constant_gains(strength, progress):
+    config = AFMConfig(schedule="frequency_neutral", strength=strength)
+    expected_gain = 1.0 + strength / 2.0
+    assert schedule_alphas(config, progress) == pytest.approx((expected_gain, expected_gain))
+
+
+@pytest.mark.parametrize("progress", [-0.1, 1.1, float("nan"), float("inf")])
+def test_frequency_neutral_schedule_still_validates_progress(progress):
+    with pytest.raises(ValueError, match="progress must be finite and in"):
+        schedule_alphas(AFMConfig(schedule="frequency_neutral"), progress)
+
+
+@pytest.mark.parametrize("preserve_dc", [True, False])
+@pytest.mark.parametrize("soft_mask,cutoff", [(False, 0.15), (True, 0.65)])
+def test_frequency_neutral_filter_matches_uniform_gain_with_selected_dc_semantics(
+    preserve_dc, soft_mask, cutoff
+):
+    torch.manual_seed(17)
+    x = torch.randn(1, 2, 15, 4) + 2.0
+    config = AFMConfig(schedule="frequency_neutral", strength=0.2,
+                       preserve_dc=preserve_dc, soft_mask=soft_mask, cutoff=cutoff)
+    actual = apply_spatial_filter(x, (3, 5), *schedule_alphas(config, 0.25), config)
+    mean = x.mean(dim=2, keepdim=True) if preserve_dc else torch.zeros_like(x[:, :, :1])
+    expected = mean + 1.1 * (x - mean)
+    torch.testing.assert_close(actual, expected, atol=1e-5, rtol=1e-5)
+
+
 def test_fft_identity_rectangular():
     torch.manual_seed(1)
     x = torch.randn(2, 3, 15, 4)

@@ -98,9 +98,13 @@ def test_spectral_metrics_match_independent_fp64_dft(radial_bins):
     raw, centered, binned = independent_spectral_ratios(
         concentration, grid, config.cutoff, radial_bins
     )
-    assert actual["rho_text_raw"] == pytest.approx(raw, abs=1e-10)
-    assert actual["rho_text_centered"] == pytest.approx(centered, abs=1e-10)
-    assert actual["rho_text_radial_binned"] == pytest.approx(binned, abs=1e-10)
+    # Production deliberately uses FP32 softmax and FFT. Keep the independent
+    # FP64 DFT oracle; four FP32 eps of relative error covers this tiny-grid
+    # cast/softmax/FFT chain, while retaining a tight absolute floor near zero.
+    fp32_rtol = 4 * torch.finfo(torch.float32).eps
+    assert actual["rho_text_raw"] == pytest.approx(raw, rel=fp32_rtol, abs=1e-10)
+    assert actual["rho_text_centered"] == pytest.approx(centered, rel=fp32_rtol, abs=1e-10)
+    assert actual["rho_text_radial_binned"] == pytest.approx(binned, rel=fp32_rtol, abs=1e-10)
     assert actual["metric_defined"] == {"raw": True, "centered": True, "radial_binned": True}
 
 
@@ -113,7 +117,17 @@ def test_checkerboard_regression_separates_raw_dc_from_centered_power():
     metrics = text_spectral_metrics(
         logits, layout, AFMConfig(diagnostic_top_k=4, cutoff=0.25), radial_bins=32
     )
-    assert metrics["rho_text_raw"] == pytest.approx(3.83e-6, rel=0.03)
+    # A 0/1 board has half the alternating amplitude of a -1/+1 board.
+    # For [a, 0, ..., 0], top-4 concentration is (exp(a)+3)/(4*(exp(a)+7)).
+    # The board has only DC and Nyquist power, giving this analytic ratio.
+    a = torch.tensor([1.0, float(logits[..., 0].max())], dtype=torch.float64)
+    c0, c1 = (a.exp() + 3) / (4 * (a.exp() + 7))
+    expected = float((c1-c0).square() / ((c1+c0).square() + (c1-c0).square()))
+    # Subtraction of two almost equal FP32 concentrations amplifies relative
+    # rounding; bound absolute concentration error by one FP32 epsilon.
+    eps = torch.finfo(torch.float32).eps
+    ratio_error_bound = 8 * eps * float(abs(c1-c0) / (c1+c0).square())
+    assert metrics["rho_text_raw"] == pytest.approx(expected, rel=0, abs=ratio_error_bound)
     assert metrics["rho_text_centered"] == pytest.approx(1.0, abs=1e-8)
     assert metrics["metric_defined"]["centered"] is True
 

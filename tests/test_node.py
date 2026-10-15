@@ -65,6 +65,23 @@ def test_node_exposes_edit(node_module, host):
     assert patched.model_options["transformer_options"]["krea2_afm_config"].mode == "edit"
 
 
+def test_frequency_neutral_schedule_is_explicit_opt_in(node_module):
+    fields = {field.name: field for field in node_module.define_schema().inputs}
+    assert fields["schedule"].options == ["curve", "frequency_neutral"]
+    assert fields["schedule"].default == "curve"
+    assert fields["schedule"].advanced is True
+
+
+def test_node_accepts_and_forwards_frequency_neutral_schedule(node_module, host):
+    patched = node_module.execute(
+        host, mode="edit", schedule="frequency_neutral", jsonl_path=""
+    ).result[0]
+    config = patched.model_options["transformer_options"]["krea2_afm_config"]
+    assert config.schedule == "frequency_neutral"
+    assert config.preserve_dc is True
+    assert config.normalization_mode == "joint"
+
+
 def test_edit_controls_use_shared_config_defaults(node_module):
     from afm.config import AFMConfig
     fields = {field.name: field for field in node_module.define_schema().inputs}

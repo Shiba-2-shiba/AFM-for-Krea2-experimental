@@ -395,6 +395,21 @@ def _reports_from_runtime_records(records: list[dict]) -> list[dict]:
             benchmark["manual"], benchmark["augmented"] = [], []
             benchmark["normalization_mode"] = report.get("config", {}).get("normalization_mode")
             benchmark["actual_implementations"] = sorted(implementations)
+            # Preserve historical measurements for display, without pretending
+            # configuration intent proves an actual kernel or qualification.
+            benchmark["unattributed_measurements"] = []
+            if not implementations:
+                for measured in report["events"]:
+                    if measured.get("event") == "run_summary":
+                        benchmark["unattributed_measurements"].append({
+                            "generation_seconds": measured.get("wall_seconds"),
+                            "peak_allocated_bytes": measured.get("peak_allocated_bytes"),
+                            "peak_reserved_bytes": measured.get("peak_reserved_bytes"),
+                            "declared_implementation": report.get("config", {}).get("implementation"),
+                            "measurement_source": measured.get("measurement_source"),
+                            "cuda_synchronized": measured.get("cuda_synchronized"),
+                            "qualification_eligible": False,
+                        })
             if len(implementations) == 1 and implementations <= {"manual", "augmented"}:
                 actual = next(iter(implementations))
                 summaries = [row for row in report["events"] if row.get("event") == "run_summary"]
