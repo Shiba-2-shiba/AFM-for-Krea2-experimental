@@ -1,5 +1,7 @@
 # Krea2 AFM (experimental)
 
+**2026-10-15:** 総注意量保存モードと診断・実験ツールのリファクタリングを実装しました。ユーザー指定により今回の差分に対する検証は行っていません。以前のCPU PASS記録は今回の変更の保証ではありません。状態と後日の確認手順は[実装引き継ぎ](docs/refactoring-implementation-2026-10-15.md)を参照してください。
+
 ComfyUIのネイティブKrea2向けに、画像Query → テキストKeyのAttention logitsを
 空間周波数で編集するカスタムノードです。画像・テキストを合わせた全Keyで正規化します。
 Anima AFM / Krea2T Enhancerのインストールは不要です。
@@ -35,6 +37,9 @@ V3ノード、OUTER_SAMPLE / DIFFUSION_MODEL wrapper、post_input、およびnat
 
 | 設定 | 意味 |
 | --- | --- |
+| `normalization_mode=joint` | 従来方式。テキストlogitsをFFT編集して全Key softmax |
+| `normalization_mode=preserve_text_mass` | 同一callのtext総注意量を保つLSE補正。manualのみ、autoもmanual |
+| `diagnostic_head_indices / diagnostic_radial_bins` | 物理headの指定とradial bin数。空欄headは従来の先頭選択 |
 | `implementation=manual` | 全Key正規化を保つFP32 logits/softmaxの分割基準実装 |
 | `implementation=augmented` | Q/K/V拡張と分割SDPAを使う実験経路。元のAttention scaleを維持 |
 | `implementation=auto` | 未検証環境ではmanual。出荷時の採用リストは空 |
@@ -71,7 +76,7 @@ V3ノード、OUTER_SAMPLE / DIFFUSION_MODEL wrapper、post_input、およびnat
 通常は `spectral_diag=off`, `compare_kernels=false`。必要時だけ有効化します。
 
 - `spectral_diag=sampled`: 指定step/block/headで、テキスト内softmaxのtop-K集中度の
-  HF比 `rho_text_conditional` とjoint softmaxの `text_attention_mass` を別々に記録。
+  HF比をraw/centered/radial-binnedの別名で記録し、joint softmaxの `text_attention_mass` と保存誤差を別に記録。schema 5の未定義指標はnull。
 - `compare_kernels=true`: 同じQKVでmanual FP32とaugmented、および各zero対照を比較。
   `effect_resolved=false` は効果を数値ノイズから分離できないことを示します。
 - `diagnostic_block_scope` は編集scopeとは独立。head数・query chunk・step間隔を制限できます。

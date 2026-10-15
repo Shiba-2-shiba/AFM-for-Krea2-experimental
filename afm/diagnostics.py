@@ -38,7 +38,7 @@ def environment_metadata() -> dict:
 
 
 def emit_record(settings, run_id: str, event: str, **fields) -> dict:
-    row = {"schema_version": 4, "model_family": "krea2", "run_id": run_id,
+    row = {"schema_version": 5, "model_family": "krea2", "run_id": run_id,
            "event": event, **fields}
     # Reject non-finite scalars and tensors rather than stringifying huge data.
     line = json.dumps(row, ensure_ascii=False, allow_nan=False)
@@ -58,4 +58,6 @@ def configuration_metadata(config) -> dict:
     values = asdict(config)
     # Keep logs portable without exposing a user's full destination path.
     values.pop("jsonl_path")
+    values["normalization_version"] = 1
+    values["diagnostic_metric_version"] = "text_spectrum_v2"
     return values

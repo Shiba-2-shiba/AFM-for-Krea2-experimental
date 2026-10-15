@@ -54,6 +54,13 @@ class Krea2AFMModelPatch(io.ComfyNode):
                                  tooltip="Bounded same-QKV manual/augmented comparisons; adds significant work."),
                 io.Boolean.Input("benchmark", default=False, advanced=True,
                                  tooltip="Synchronize CUDA and measure server-side peak memory and elapsed time."),
+                io.Combo.Input("normalization_mode", options=["joint", "preserve_text_mass"],
+                               default="joint", optional=True, advanced=True,
+                               tooltip="Preserve total text attention mass with the manual kernel."),
+                io.String.Input("diagnostic_head_indices", default="", optional=True, advanced=True,
+                                tooltip="Physical head indices, e.g. 0,16,32,47. Empty uses head limit."),
+                io.Int.Input("diagnostic_radial_bins", default=32, min=1, max=256,
+                             optional=True, advanced=True),
             ],
             outputs=[io.Model.Output(display_name="model")],
         )
@@ -67,7 +74,8 @@ class Krea2AFMModelPatch(io.ComfyNode):
                 max_workspace_mib=512.0, augmented_precision="activation", spectral_diag="off",
                 diagnostic_block_scope="0", diagnostic_every_n_steps=1, diagnostic_head_limit=1,
                 diagnostic_query_chunk_size=128, diagnostic_top_k=4, compare_kernels=False,
-                benchmark=False) -> io.NodeOutput:
+                benchmark=False, normalization_mode="joint", diagnostic_head_indices="",
+                diagnostic_radial_bins=32) -> io.NodeOutput:
         if jsonl_path:
             import folder_paths
             relative = Path(jsonl_path)
@@ -90,7 +98,9 @@ class Krea2AFMModelPatch(io.ComfyNode):
                            diagnostic_head_limit=diagnostic_head_limit,
                            diagnostic_query_chunk_size=diagnostic_query_chunk_size,
                            diagnostic_top_k=diagnostic_top_k, compare_kernels=compare_kernels,
-                           benchmark=benchmark)
+                           benchmark=benchmark, normalization_mode=normalization_mode,
+                           diagnostic_head_indices=diagnostic_head_indices,
+                           diagnostic_radial_bins=diagnostic_radial_bins)
         return io.NodeOutput(install_krea2_afm(model, config))
 
 

@@ -83,3 +83,25 @@ def test_manual_fp32_math_is_not_changed_by_ambient_cpu_autocast():
     with torch.autocast("cpu", dtype=torch.bfloat16):
         actual = joint_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
     torch.testing.assert_close(actual, expected, atol=1e-5, rtol=1e-5)
+
+
+@pytest.mark.parametrize(
+    "mutation,reason",
+    [
+        (lambda q, k, v: (q[:, :, :-1], k, v), "layout"),
+        (lambda q, k, v: (q, k[:, :1], v), "shape|head"),
+        (lambda q, k, v: (q, k, v.double()), "dtype"),
+    ],
+)
+def test_manual_shared_validation_rejects_incompatible_qkv(mutation, reason):
+    q, k, v, layout, config, progress, chunks = _fixture()
+    q, k, v = mutation(q, k, v)
+    with pytest.raises((AFMUnsupportedError, ValueError, TypeError), match=reason):
+        joint_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
+
+
+@pytest.mark.parametrize("scale", [float("nan"), float("inf"), 0.0, -0.1])
+def test_manual_shared_validation_rejects_invalid_scale(scale):
+    q, k, v, layout, config, progress, chunks = _fixture()
+    with pytest.raises((AFMUnsupportedError, ValueError), match="scale"):
+        joint_image_rows(q, k, v, layout, config, progress, chunks, scale)

@@ -70,9 +70,20 @@ def _validated_comparisons(report: dict) -> list[dict]:
             not isinstance(comparison_run_id, str) or not comparison_run_id
         ):
             raise ReportValidationError(f"comparison {index} run_id must be a non-empty string")
+        schema_version = comparison.get("schema_version", report.get("schema_version"))
+        head_index = comparison.get("head_index")
+        if schema_version == 5:
+            if type(head_index) is not int or head_index < 0:
+                diagnostic_heads = comparison.get("diagnostic_heads")
+                if not (isinstance(diagnostic_heads, list) and len(diagnostic_heads) == 1
+                        and type(diagnostic_heads[0]) is int and diagnostic_heads[0] >= 0):
+                    raise ReportValidationError(
+                        f"comparison {index} schema 5 evidence requires head_index"
+                    )
+                head_index = diagnostic_heads[0]
         key = (comparison_run_id,) + tuple(
             comparison[field] for field in _KEY_FIELDS
-        )
+        ) + ((head_index,) if schema_version == 5 else ())
         if key in seen:
             raise ReportValidationError(f"duplicate comparison key: {key!r}")
         seen.add(key)
@@ -111,10 +122,22 @@ def _finite_number(value) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
-def _performance_errors(benchmark) -> list[str]:
+def _performance_errors(benchmark, normalization_mode=None) -> list[str]:
     if not isinstance(benchmark, dict):
         return ["benchmark evidence is missing"]
     errors = []
+    if benchmark.get("normalization_mode") != normalization_mode:
+        errors.append("benchmark normalization mode does not match comparison evidence")
+    if benchmark.get("actual_implementations") != ["manual", "augmented"]:
+        errors.append("benchmark actual implementation paths are incomplete or mixed")
+    if not isinstance(benchmark.get("shape_signature"), dict) or not benchmark["shape_signature"]:
+        errors.append("benchmark shape signature is missing")
+    execution_order = benchmark.get("execution_order")
+    if not isinstance(execution_order, list) or len(execution_order) < 10 or any(
+        execution_order[index] == execution_order[index - 1]
+        for index in range(1, len(execution_order))
+    ) or set(execution_order or ()) != {"manual", "augmented"}:
+        errors.append("benchmark execution order does not prove alternation")
     if benchmark.get("measurement_source") != "server":
         errors.append("benchmark metrics are not server measurements")
     if benchmark.get("cuda_synchronized") is not True:
@@ -134,6 +157,16 @@ def _performance_errors(benchmark) -> list[str]:
         return errors + ["five warm measurements per implementation are required"]
     if not all(isinstance(row, dict) for row in manual + augmented):
         return errors + ["warm measurements must be objects"]
+    shape_signature = benchmark.get("shape_signature")
+    for implementation, rows in (("manual", manual), ("augmented", augmented)):
+        for row in rows:
+            if (row.get("actual_implementation") != implementation
+                    or row.get("normalization_mode") != normalization_mode
+                    or row.get("shape_signature") != shape_signature):
+                errors.append(
+                    "benchmark measurements mix mode, implementation path, or shape"
+                )
+                break
 
     improvements = []
     for field in ("generation_seconds", "peak_allocated_bytes"):
@@ -162,6 +195,23 @@ def _performance_errors(benchmark) -> list[str]:
 
 def profile_qualification_errors(report: dict) -> list[str]:
     errors = []
+    if report.get("schema_version") != 5:
+        errors.append("new profile qualification requires schema 5 evidence")
+    config = report.get("config")
+    if not isinstance(config, dict):
+        errors.append("run configuration evidence is missing")
+        config = {}
+    if config.get("normalization_mode") not in ("joint", "preserve_text_mass"):
+        errors.append("explicit normalization mode is required")
+    if config.get("normalization_version") != 1:
+        errors.append("normalization version 1 is required")
+    if config.get("diagnostic_metric_version") != "text_spectrum_v2":
+        errors.append("diagnostic metric version text_spectrum_v2 is required")
+    implementations = report.get("actual_implementations")
+    if implementations != ["augmented"]:
+        errors.append("profile evidence requires one actual augmented implementation")
+    if config.get("normalization_mode") == "preserve_text_mass":
+        errors.append("preserve_text_mass has no augmented qualification path")
     try:
         comparisons = _validated_comparisons(report)
     except ReportValidationError as exc:
@@ -184,6 +234,13 @@ def profile_qualification_errors(report: dict) -> list[str]:
     strengths_by_dtype = {}
     for index, comparison in enumerate(comparisons):
         prefix = f"comparison {index}"
+        if comparison.get("schema_version", report.get("schema_version")) == 5:
+            if comparison.get("normalization_mode") != config.get("normalization_mode"):
+                errors.append(f"{prefix} normalization mode does not match run configuration")
+            if comparison.get("normalization_version") != 1:
+                errors.append(f"{prefix} normalization version is not 1")
+            if comparison.get("selected_implementation") != "augmented":
+                errors.append(f"{prefix} does not record the actual augmented path")
         dtype = str(comparison.get("dtype", "")).lower()
         thresholds = _THRESHOLDS.get(dtype)
         if thresholds is None:
@@ -239,7 +296,7 @@ def profile_qualification_errors(report: dict) -> list[str]:
             errors.append(f"missing strength evidence: {missing_strengths}")
     else:
         errors.append("missing strength evidence: [0.05, 0.1, 0.2]")
-    errors.extend(_performance_errors(report.get("benchmark")))
+    errors.extend(_performance_errors(report.get("benchmark"), config.get("normalization_mode")))
     return errors
 
 
@@ -257,12 +314,43 @@ def _reports_from_runtime_records(records: list[dict]) -> list[dict]:
         if not isinstance(run_id, str) or not run_id or not isinstance(event, str):
             raise ReportValidationError("runtime records require run_id and event")
         report = grouped.setdefault(
-            run_id, {"run_id": run_id, "comparisons": [], "events": []}
+            run_id, {"run_id": run_id, "comparisons": [], "events": [],
+                     "attention_events": [], "spectral_events": []}
         )
+        # Pre-schema historical JSONL is displayed as legacy v4 evidence only.
+        # Missing versions are never upgraded into qualification evidence.
+        schema_version = record.get("schema_version", 4)
+        if schema_version not in (4, 5):
+            raise ReportValidationError(f"unsupported runtime schema: {schema_version!r}")
+        previous = report.get("schema_version")
+        if previous is not None and previous != schema_version:
+            raise ReportValidationError(f"mixed runtime schemas for run {run_id}")
+        report["schema_version"] = schema_version
         report["events"].append(record)
         if event == "run_start":
             report["config"] = record.get("config", {})
             report["environment"] = record.get("environment", {})
+        elif event == "attention":
+            report["attention_events"].append(record)
+        elif event == "spectral_diagnostic":
+            if schema_version == 4:
+                record = {
+                    **record,
+                    "metric_version": "centered_legacy_v4",
+                    "rho_text_raw_before": None,
+                    "rho_text_raw_after": None,
+                    "rho_text_centered_before": record.get("rho_text_conditional_before"),
+                    "rho_text_centered_after": record.get("rho_text_conditional_after"),
+                    "rho_text_radial_binned_before": None,
+                    "rho_text_radial_binned_after": None,
+                    "metric_defined": {
+                        "raw": False,
+                        "centered": record.get("rho_text_conditional_before") is not None
+                                    and record.get("rho_text_conditional_after") is not None,
+                        "radial_binned": False,
+                    },
+                }
+            report["spectral_events"].append(record)
         elif event == "kernel_comparison":
             comparison = {
                 key: value
@@ -283,8 +371,6 @@ def _reports_from_runtime_records(records: list[dict]) -> list[dict]:
                     "oom_events",
                 )
             }
-            config = report.get("config", {})
-            implementation = config.get("implementation")
             benchmark = {
                 "measurement_source": record.get("measurement_source"),
                 "cuda_synchronized": record.get("cuda_synchronized"),
@@ -294,22 +380,44 @@ def _reports_from_runtime_records(records: list[dict]) -> list[dict]:
                 "manual": [],
                 "augmented": [],
             }
-            if (
-                record.get("cuda_synchronized") is True
-                and implementation in ("manual", "augmented")
-                and _finite_number(record.get("wall_seconds"))
-                and _finite_number(record.get("peak_allocated_bytes"))
-            ):
-                benchmark[implementation].append(
-                    {
-                        "generation_seconds": record["wall_seconds"],
-                        "peak_allocated_bytes": record["peak_allocated_bytes"],
-                        "peak_reserved_bytes": record.get("peak_reserved_bytes"),
-                        "edit_seconds": record.get("edit_seconds"),
-                        "timing_scope": record.get("timing_scope"),
-                    }
-                )
             report["benchmark"] = benchmark
+    for report in grouped.values():
+        implementations = {
+            event.get("selected_implementation")
+            for event in report["attention_events"]
+            if isinstance(event.get("selected_implementation"), str)
+        }
+        report["actual_implementations"] = sorted(implementations)
+        benchmark = report.get("benchmark")
+        if isinstance(benchmark, dict):
+            # Runtime configuration may say auto. Attribute measurements only
+            # to the single actual attention path; mixed runs remain ineligible.
+            benchmark["manual"], benchmark["augmented"] = [], []
+            benchmark["normalization_mode"] = report.get("config", {}).get("normalization_mode")
+            benchmark["actual_implementations"] = sorted(implementations)
+            if len(implementations) == 1 and implementations <= {"manual", "augmented"}:
+                actual = next(iter(implementations))
+                summaries = [row for row in report["events"] if row.get("event") == "run_summary"]
+                shape_fields = ("q_shape", "grid", "activation_dtype", "head_chunk_size",
+                                "query_chunk_size", "filter_signature")
+                shapes = [{field: row.get(field) for field in shape_fields}
+                          for row in report["attention_events"]]
+                shape = shapes[0] if shapes and all(value == shapes[0] for value in shapes) else None
+                benchmark["shape_signature"] = shape
+                if len(summaries) == 1:
+                    measured = summaries[0]
+                    if (measured.get("cuda_synchronized") is True
+                            and _finite_number(measured.get("wall_seconds"))
+                            and _finite_number(measured.get("peak_allocated_bytes"))):
+                        benchmark[actual].append({
+                            "generation_seconds": measured["wall_seconds"],
+                            "peak_allocated_bytes": measured["peak_allocated_bytes"],
+                            "peak_reserved_bytes": measured.get("peak_reserved_bytes"),
+                            "edit_seconds": measured.get("edit_seconds"),
+                            "timing_scope": measured.get("timing_scope"),
+                            "normalization_mode": benchmark["normalization_mode"],
+                            "actual_implementation": actual, "shape_signature": shape,
+                        })
     return list(grouped.values())
 
 

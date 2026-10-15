@@ -8,8 +8,8 @@ from uuid import uuid4
 import torch
 
 from .capabilities import (
-    CONFIG_KEY, WRAPPER_KEY, detect_krea2, detect_patch_conflicts,
-    detect_transformer_conflicts, multigpu_enabled,
+    CONFIG_KEY, WRAPPER_KEY, detect_krea2, detect_model_skip_caches,
+    detect_patch_conflicts, detect_transformer_conflicts, multigpu_enabled,
 )
 from .config import AFMConfig, validate_config
 from .diagnostics import configuration_metadata, emit_record, environment_metadata
@@ -26,6 +26,12 @@ class AFMUnsupportedError(ValueError):
     def __init__(self, reason: str, detail: str = ""):
         self.reason = reason
         super().__init__(f"{reason}: {detail}" if detail else reason)
+
+
+def _reject_model_skip_cache(options: dict) -> None:
+    caches = detect_model_skip_caches(options)
+    if caches:
+        raise AFMUnsupportedError("unsupported_model_skip_cache", ", ".join(caches))
 
 
 @dataclass(frozen=True)
@@ -155,6 +161,7 @@ def make_outer_sample_wrapper(config: AFMConfig):
     def outer_sample(executor, *args, **kwargs):
         guider = executor.class_obj
         original = guider.model_options
+        _reject_model_skip_cache(original.get("transformer_options", {}))
         if RUN_KEY in original.get("transformer_options", {}):
             raise RuntimeError("Nested Krea2 AFM sampling is unsupported")
         if multigpu_enabled(getattr(guider, "model_patcher", None), original):
@@ -244,6 +251,7 @@ def make_diffusion_wrapper(config: AFMConfig):
                   transformer_options=None, **kwargs):
         options = dict(transformer_options or {})
         state = _require_state(options)
+        _reject_model_skip_cache(options)
         conflicts = detect_transformer_conflicts(options, own_config=config)
         if conflicts:
             raise ValueError("Krea2 AFM runtime conflict: " + ", ".join(conflicts))
@@ -312,6 +320,7 @@ def install_krea2_afm(model_patcher, config: AFMConfig):
     if config.mode == "off" or (config.mode == "edit" and config.strength == 0
                                and config.zero_strength_mode == "original"):
         return model_patcher.clone()
+    _reject_model_skip_cache(model_patcher.model_options.get("transformer_options", {}))
     conflicts = detect_patch_conflicts(model_patcher)
     if conflicts:
         raise ValueError("Krea2 AFM conflict: " + ", ".join(conflicts))

@@ -1,5 +1,7 @@
 # 検証と実機確認への引き継ぎ
 
+> 2026-10-15 refactor: ユーザー指定により今回の差分は未検証です。以前のPASS記録と区別し、[今回の実装引き継ぎ](refactoring-implementation-2026-10-15.md)を参照してください。
+
 今回は実モデル推論・GPU測定を実施していません。Task 2–4の編集コードと、
 Task 5のローカル検証/引き継ぎツールを実装しています。
 
@@ -109,3 +111,7 @@ FlashAttention使用や高速化を主張しません。
 の2026-09-30取得版SHA-256:
 `8688a4fe39292924761b184d9bc1ad6a62817c55fb0de704becca041150fac69`。
 例では任意LoRAとprompt enhancementを省き、標準loader/conditioning/sampler構成を使っています。
+
+## 2026-10-15の変更を検証する際の注意
+
+今回のリファクタリング差分は未検証です。以前の241件PASSを新方式の証拠に使用しないでください。schema 5のraw/centered/radial-binned指標、保存性・物理head診断、旧schema 4のlegacy reader、総注意量保存manual、cache拒否、manifest 2/paired集計を追加しています。手順は[実装引き継ぎ](refactoring-implementation-2026-10-15.md)と[計画書](superpowers/plans/2026-10-15-krea2-afm-refactoring.md)を参照してください。テストコードは整備していますが、今回は実行していません。

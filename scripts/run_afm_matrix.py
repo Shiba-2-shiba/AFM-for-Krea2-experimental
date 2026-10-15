@@ -7,6 +7,7 @@ CUDA timing or peak-memory metrics in the client process.
 import argparse
 import copy
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -23,6 +24,209 @@ from scripts.validate_workflow import validate_workflow
 from scripts.summarize_krea2_afm import load_reports
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+
+def _canonical_sha256(value) -> str:
+    payload = json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _nodes_by_type(graph: dict, class_type: str) -> list[tuple[str, dict]]:
+    return sorted(
+        ((str(node_id), node) for node_id, node in graph.items()
+         if isinstance(node, dict) and node.get("class_type") == class_type),
+        key=lambda item: item[0],
+    )
+
+
+def _input_reference(value):
+    if isinstance(value, list) and len(value) == 2 and isinstance(value[0], (str, int)):
+        return str(value[0])
+    return None
+
+
+def _conditioning_texts(graph: dict, value, seen=None) -> list[str]:
+    node_id = _input_reference(value)
+    if node_id is None or node_id not in graph:
+        return []
+    seen = set() if seen is None else seen
+    if node_id in seen:
+        return []
+    seen.add(node_id)
+    node = graph[node_id]
+    inputs = node.get("inputs", {})
+    texts = []
+    if node.get("class_type") == "CLIPTextEncode" and isinstance(inputs.get("text"), str):
+        texts.append(inputs["text"])
+    for item in inputs.values():
+        texts.extend(_conditioning_texts(graph, item, seen))
+    return texts
+
+
+def _file_identity(matrix_dir: Path, value):
+    if not isinstance(value, str) or not value:
+        return value
+    candidate = (matrix_dir / value).resolve()
+    if candidate.is_file():
+        return {"name": Path(value).name, "sha256": hashlib.sha256(candidate.read_bytes()).hexdigest()}
+    return {"name": value, "sha256": None}
+
+
+def _experiment_identity(graph: dict, matrix_dir: Path) -> dict:
+    samplers = _nodes_by_type(graph, "KSampler")
+    sampler = samplers[0][1].get("inputs", {}) if samplers else {}
+    positive = _conditioning_texts(graph, sampler.get("positive"))
+    negative = _conditioning_texts(graph, sampler.get("negative"))
+    loaders = []
+    for node_id, node in sorted(graph.items(), key=lambda item: str(item[0])):
+        class_type = str(node.get("class_type", "")) if isinstance(node, dict) else ""
+        if class_type in {"UNETLoader", "CLIPLoader", "VAELoader"} or "Lora" in class_type or "LoRA" in class_type:
+            inputs = node.get("inputs", {})
+            loaders.append({
+                "class_type": class_type,
+                "identity": {key: value for key, value in sorted(inputs.items())
+                             if _input_reference(value) is None},
+            })
+    latent = _nodes_by_type(graph, "EmptyLatentImage") or _nodes_by_type(
+        graph, "EmptySD3LatentImage"
+    )
+    latent_inputs = latent[0][1].get("inputs", {}) if latent else {}
+    input_images = []
+    for _, node in _nodes_by_type(graph, "LoadImage"):
+        input_images.append(_file_identity(matrix_dir, node.get("inputs", {}).get("image")))
+    return {
+        "positive_text": positive,
+        "negative_text": negative,
+        "seed": sampler.get("seed"),
+        "model_components": loaders,
+        "sampler": {key: sampler.get(key) for key in
+                    ("sampler_name", "scheduler", "steps", "cfg", "denoise")},
+        "resolution": {key: latent_inputs.get(key) for key in ("width", "height", "batch_size")},
+        "input_images": input_images,
+    }
+
+
+def _afm_inputs(graph: dict) -> dict:
+    nodes = _nodes_by_type(graph, "Krea2AFMModelPatch")
+    if not nodes:
+        return {}
+    values = copy.deepcopy(nodes[0][1].get("inputs", {}))
+    values.pop("model", None)
+    values.pop("jsonl_path", None)
+    return values
+
+
+def _parse_indices(value, *, default=(0,)) -> list[int]:
+    if value in (None, ""):
+        return list(default)
+    result = []
+    for part in str(value).split(","):
+        part = part.strip()
+        if part:
+            result.append(int(part))
+    return result
+
+
+def _parse_scope(value) -> list[int]:
+    if str(value or "").strip() == "all":
+        return []  # Total block count is host metadata and cannot be guessed offline.
+    result = set()
+    for part in str(value or "").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            start, end = (int(item.strip()) for item in part.split("-", 1))
+            result.update(range(start, end + 1))
+        else:
+            result.add(int(part))
+    return sorted(result)
+
+
+def _expected_coverage(graph: dict, afm: dict) -> dict:
+    samplers = _nodes_by_type(graph, "KSampler")
+    sampler = samplers[0][1].get("inputs", {}) if samplers else {}
+    latent = _nodes_by_type(graph, "EmptyLatentImage") or _nodes_by_type(
+        graph, "EmptySD3LatentImage"
+    )
+    latent_inputs = latent[0][1].get("inputs", {}) if latent else {}
+    steps = sampler.get("steps")
+    batch_size = latent_inputs.get("batch_size", 1)
+    if (sampler.get("sampler_name"), sampler.get("scheduler"), batch_size) != ("euler", "simple", 1):
+        return {"protocol": None, "status": "unverified", "reason": "unsupported coverage protocol",
+                "semantic_keys": []}
+    if type(steps) is not int or steps <= 0:
+        return {"protocol": None, "status": "unverified", "reason": "unknown step count",
+                "semantic_keys": []}
+    blocks = _parse_scope(afm.get("diagnostic_block_scope", afm.get("block_scope", "")))
+    every = afm.get("diagnostic_every_n_steps", 1)
+    if type(every) is not int or every <= 0 or not blocks:
+        return {"protocol": None, "status": "unverified", "reason": "invalid diagnostic schedule",
+                "semantic_keys": []}
+    heads = _parse_indices(
+        afm.get("diagnostic_head_indices"),
+        default=range(int(afm.get("diagnostic_head_limit", 1))),
+    )
+    branch_mode = afm.get("branch_mode", "positive_only")
+    if branch_mode != "positive_only":
+        return {"protocol": None, "status": "unverified",
+                "reason": "initial coverage protocol requires positive_only CFG selection",
+                "semantic_keys": []}
+    branches = {"positive_only": [0], "negative_only": [1], "both": [0, 1]}.get(branch_mode)
+    if branches is None:
+        return {"protocol": None, "status": "unverified", "reason": "unsupported branch mode",
+                "semantic_keys": []}
+    edit_all = str(afm.get("block_scope", "")).strip() == "all"
+    edit_blocks = set(_parse_scope(afm.get("block_scope", "")))
+    start = float(afm.get("start_percent", 0.0))
+    end = float(afm.get("end_percent", 1.0))
+    mode = afm.get("mode", "off")
+    zero_original = afm.get("strength", 0.0) == 0 and afm.get("zero_strength_mode") == "original"
+    keys = []
+    for step in range(0, steps, every):
+        progress = step / max(steps - 1, 1)
+        for block in blocks:
+            for branch in branches:
+                for head in heads:
+                    keys.append({
+                        "step_index": step, "block_index": block, "branch_kind": branch,
+                        "head_index": head, "sample_index": 0,
+                        "expected_edit": bool(mode == "edit" and (edit_all or block in edit_blocks)
+                                              and start <= progress <= end and not zero_original),
+                        "normalization_mode": afm.get("normalization_mode", "joint"),
+                        "expected_implementation": (
+                            "original" if mode != "edit" or (not edit_all and block not in edit_blocks)
+                            or not start <= progress <= end or zero_original
+                            else "manual" if afm.get("normalization_mode") == "preserve_text_mass"
+                            else afm.get("implementation", "auto")
+                        ),
+                    })
+    return {"protocol": "euler_simple_single_eval_per_branch_v1", "status": "planned",
+            "semantic_keys": keys}
+
+
+def _apply_diagnostic_mode(run: dict, graph: dict) -> None:
+    label = run.get("diagnostic_mode")
+    mapping = {
+        "off": {"debug_level": "off", "spectral_diag": "off", "compare_kernels": False},
+        "summary": {"debug_level": "summary", "spectral_diag": "off",
+                    "compare_kernels": False},
+        "spectral": {"debug_level": "summary", "spectral_diag": "sampled",
+                     "compare_kernels": False},
+        "comparison": {"debug_level": "summary", "spectral_diag": "sampled",
+                       "compare_kernels": True},
+    }
+    if label not in mapping:
+        return
+    for _, node in _nodes_by_type(graph, "Krea2AFMModelPatch"):
+        inputs = node.setdefault("inputs", {})
+        inputs.update(mapping[label])
+        if "diagnostic_top_k" in run:
+            inputs["diagnostic_top_k"] = run["diagnostic_top_k"]
+        if "diagnostic_radial_bins" in run:
+            inputs["diagnostic_radial_bins"] = run["diagnostic_radial_bins"]
 
 
 def _json_request(opener, url: str, *, payload=None, timeout: float):
@@ -76,6 +280,7 @@ def _prepare_prompt(
         if node_id not in graph or not isinstance(input_values, dict):
             raise ValueError(f"run {run['id']} has invalid node_inputs entry {node_id!r}")
         graph[node_id].setdefault("inputs", {}).update(input_values)
+    _apply_diagnostic_mode(run, graph)
     for node in graph.values():
         if node.get("class_type") == "Krea2AFMModelPatch":
             node.setdefault("inputs", {})["jsonl_path"] = server_log_relative
@@ -178,6 +383,17 @@ def _attach_server_metrics(record: dict, log_path: Path) -> None:
     complete = [report for report in reports if isinstance(report.get("summary"), dict)]
     if complete:
         record["server_metrics"] = complete
+        run_ids = {report.get("run_id") for report in complete}
+        if len(run_ids) == 1 and None not in run_ids:
+            record["runtime_run_id"] = next(iter(run_ids))
+        implementations = sorted({
+            implementation
+            for report in complete
+            for implementation in report.get("actual_implementations", [])
+        })
+        record["actual_implementation"] = (
+            implementations[0] if len(implementations) == 1 else "mixed" if implementations else "unverified"
+        )
 
 
 def _parser():
@@ -211,7 +427,8 @@ def main(argv=None, *, opener=urlopen) -> int:
     base_url = args.comfy_url.rstrip("/")
     invocation_id = str(uuid.uuid4())
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "matrix_schema_version": matrix["schema_version"],
         "invocation_id": invocation_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "mode": "execute" if args.execute else "dry_run",
@@ -254,7 +471,45 @@ def main(argv=None, *, opener=urlopen) -> int:
             record.update(status="preparation_failed", error=str(exc))
             exit_code = 2
             continue
-        record.update(workflow_source=source, prompt=str(prompt_path))
+        try:
+            identity = _experiment_identity(graph, args.matrix.resolve().parent)
+            afm = _afm_inputs(graph)
+            metadata = dict(
+            workflow_source=source,
+            prompt=str(prompt_path),
+            pair_id=_canonical_sha256(identity),
+            condition_id=_canonical_sha256(afm),
+            repeat_index=run.get("repeat_index", 0),
+            phase=run.get("phase", "unspecified"),
+            control=run.get("control"),
+            condition_role=run.get("condition_role", run.get("control")),
+            prompt_text_sha256=_canonical_sha256({
+                "positive_text": identity["positive_text"],
+                "negative_text": identity["negative_text"],
+            }),
+            resolved_workflow_sha256=_canonical_sha256(graph),
+            model_identity=identity["model_components"],
+            case_identity=identity,
+            afm_config=afm,
+            comparison_group=run.get("comparison_group"),
+            requested_implementation=afm.get("implementation", "original"),
+            actual_implementation="unverified",
+            normalization_mode=afm.get("normalization_mode", "joint"),
+            normalization_version=afm.get("normalization_version", 1),
+            metric_definition={
+                "metric_version": "text_spectrum_v2",
+                "diagnostic_top_k": afm.get("diagnostic_top_k"),
+                "radial_bins": afm.get("diagnostic_radial_bins", 32),
+                "cutoff": afm.get("cutoff"),
+            },
+            expected_coverage=_expected_coverage(graph, afm),
+            runtime_run_id=None,
+            )
+        except (OSError, TypeError, ValueError) as exc:
+            record.update(status="preparation_failed", error=str(exc))
+            exit_code = 2
+            continue
+        record.update(metadata)
         prepared.append((run, graph, record, log_path))
 
     if args.execute and prepared:

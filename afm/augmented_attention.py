@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 
 from .config import AFMConfig
-from .joint_attention import _reject_attention_options, _require_finite, _validate_inputs
+from .attention_math import reject_attention_options, require_finite, validate_joint_inputs
 from .memory import ChunkPlan
 from .runtime import AFMUnsupportedError, ProgressInfo, TokenLayout
 from .spectral import apply_spatial_filter, schedule_alphas
@@ -23,8 +23,8 @@ def build_augmented_kv(k: torch.Tensor, v: torch.Tensor, layout: TokenLayout) ->
             or k.ndim != 4 or v.ndim != 4 or k.shape != v.shape
             or k.shape[2] != layout.total_tokens):
         raise AFMUnsupportedError("unsupported_layout", "K/V must share [B,H,N,d]")
-    _require_finite(k, "K")
-    _require_finite(v, "V")
+    require_finite(k, "K")
+    require_finite(v, "V")
     extra_k = torch.zeros_like(k)
     extra_k[..., slice(*layout.text_slice), :] = k[..., slice(*layout.text_slice), :]
     return AugmentedKV(
@@ -65,8 +65,11 @@ def augmented_image_rows(
     mask=None,
     is_causal: bool = False,
 ) -> torch.Tensor:
-    _reject_attention_options(mask, is_causal)
-    batch, heads, _, dim = _validate_inputs(
+    if config.normalization_mode != "joint":
+        raise AFMUnsupportedError("unsupported_normalization_implementation",
+                                  "augmented attention only implements joint normalization")
+    reject_attention_options(mask, is_causal)
+    batch, heads, _, dim = validate_joint_inputs(
         q, k, v, layout, chunks, scale, "augmented"
     )
     alpha_lf, alpha_hf = schedule_alphas(config, progress.progress)
@@ -86,7 +89,7 @@ def augmented_image_rows(
                     q_image_activation, layout.grid, alpha_lf, alpha_hf, config
                 )
                 delta = filtered - q_image_activation.float()
-                _require_finite(delta, "augmented Q delta")
+                require_finite(delta, "augmented Q delta")
                 if precision == "float32":
                     q_image = q_image_activation.float()
                     k_heads = k[sample:sample + 1, head_start:head_end].float()
@@ -111,11 +114,11 @@ def augmented_image_rows(
                         raise AFMUnsupportedError(
                             "unsupported_scale", "SDPA does not accept an explicit scale"
                         ) from exc
-                    _require_finite(output, "augmented attention output")
+                    require_finite(output, "augmented attention output")
                     stripped = strip_augmented_heads(output, dim, head_end - head_start, False)
                     result[sample:sample + 1, head_start:head_end,
                            query_start:query_end, :] = stripped.to(v.dtype)
                     del query, output, stripped
                 del q_image_activation, filtered, delta, q_image, k_heads, v_heads, kv
-    _require_finite(result, "augmented attention result")
+    require_finite(result, "augmented attention result")
     return result

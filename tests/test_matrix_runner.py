@@ -428,3 +428,84 @@ def test_missing_workflow_is_recorded_as_unverified_preparation_failure(tmp_path
     manifest = json.loads((out_dir / "manifest.json").read_text())
     assert manifest["runs"][0]["status"] == "preparation_failed"
     assert manifest["runs"][0]["server_metrics"] == "unverified"
+
+
+def test_manifest_v2_pair_identity_ignores_afm_and_output_inputs(tmp_path):
+    matrix_path = _write_fixture(tmp_path)
+    workflow_path = tmp_path / "workflow.json"
+    workflow = json.loads(workflow_path.read_text())
+    workflow["5"] = {
+        "class_type": "Krea2AFMModelPatch",
+        "inputs": {
+            "model": ["1", 0], "normalization_mode": "joint", "strength": 0.05,
+            "jsonl_path": "old.jsonl", "spectral_diag": "off",
+        },
+    }
+    workflow["6"] = {
+        "class_type": "SaveImage",
+        "inputs": {"images": ["4", 0], "filename_prefix": "old/prefix"},
+    }
+    workflow_path.write_text(json.dumps(workflow))
+    matrix = json.loads(matrix_path.read_text())
+    matrix["runs"] = [
+        {**matrix["runs"][0], "id": "joint", "phase": "pilot", "repeat_index": 0,
+         "node_inputs": {"5": {"normalization_mode": "joint", "strength": 0.05}}},
+        {**matrix["runs"][0], "id": "preserve", "phase": "pilot", "repeat_index": 0,
+         "node_inputs": {"5": {"normalization_mode": "preserve_text_mass",
+                                "implementation": "manual", "strength": 0.2,
+                                "jsonl_path": "ignored.jsonl"},
+                         "6": {"filename_prefix": "different/prefix"}}},
+    ]
+    matrix_path.write_text(json.dumps(matrix))
+
+    out_dir = tmp_path / "out"
+    assert main(["--comfy-url", "http://127.0.0.1:9", "--matrix", str(matrix_path),
+                 "--out-dir", str(out_dir)]) == 0
+    manifest = json.loads((out_dir / "manifest.json").read_text())
+    first, second = manifest["runs"]
+
+    assert manifest["schema_version"] == 2
+    assert first["pair_id"] == second["pair_id"]
+    assert first["condition_id"] != second["condition_id"]
+    assert first["resolved_workflow_sha256"] != second["resolved_workflow_sha256"]
+    assert first["phase"] == "pilot" and first["repeat_index"] == 0
+
+
+def test_diagnostic_label_updates_real_afm_node_inputs(tmp_path):
+    matrix_path = _write_fixture(tmp_path)
+    workflow_path = tmp_path / "workflow.json"
+    workflow = json.loads(workflow_path.read_text())
+    workflow["5"] = {
+        "class_type": "Krea2AFMModelPatch",
+        "inputs": {"model": ["1", 0], "spectral_diag": "off", "diagnostic_top_k": 4},
+    }
+    workflow_path.write_text(json.dumps(workflow))
+    matrix = json.loads(matrix_path.read_text())
+    matrix["runs"][0]["diagnostic_mode"] = "spectral"
+    matrix["runs"][0]["diagnostic_top_k"] = 8
+    matrix_path.write_text(json.dumps(matrix))
+
+    out_dir = tmp_path / "out"
+    assert main(["--comfy-url", "http://127.0.0.1:9", "--matrix", str(matrix_path),
+                 "--out-dir", str(out_dir)]) == 0
+    prompt = json.loads((out_dir / "prompts" / "smoke.json").read_text())
+
+    assert prompt["5"]["inputs"]["spectral_diag"] == "sampled"
+    assert prompt["5"]["inputs"]["diagnostic_top_k"] == 8
+
+
+def test_initial_coverage_protocol_does_not_guess_unconditional_evaluations():
+    from scripts.run_afm_matrix import _expected_coverage
+    graph = {
+        "3": {"class_type": "KSampler", "inputs": {
+            "sampler_name": "euler", "scheduler": "simple", "steps": 8, "cfg": 1}},
+        "5": {"class_type": "EmptySD3LatentImage", "inputs": {
+            "width": 512, "height": 512, "batch_size": 1}},
+    }
+    for branch_mode in ("negative_only", "both"):
+        coverage = _expected_coverage(graph, {
+            "mode": "edit", "branch_mode": branch_mode,
+            "block_scope": "0", "diagnostic_block_scope": "0"})
+        assert coverage["status"] == "unverified"
+        assert coverage["protocol"] is None
+        assert coverage["semantic_keys"] == []

@@ -4,7 +4,7 @@ import time
 
 import torch
 
-from .config import AFMConfig, parse_block_scope
+from .config import AFMConfig, parse_block_scope, validate_normalization_options
 from .diagnostics import emit_record
 from .runtime import (
     AFMUnsupportedError, BACKENDS_KEY, CAPS_KEY, EVAL_KEY, LAYOUT_KEY, TokenLayout,
@@ -77,6 +77,7 @@ class Krea2AFMAttentionOverride:
     def __init__(self, config: AFMConfig):
         if config.mode not in ("discover", "observe", "edit"):
             raise ValueError("Attention override requires discover, observe or edit")
+        validate_normalization_options(config)
         self.config = config
 
     def __call__(self, original_func, q, k, v, heads, **kwargs):
@@ -130,8 +131,6 @@ class Krea2AFMAttentionOverride:
         query, key, value = tensors
         selected, branch_reason = branch_selection(options.get("cond_or_uncond"), query.shape[0],
                                                     self.config.branch_mode)
-        if branch_reason:
-            state.reasons[branch_reason] += 1
         # Unrecognized metadata is never guessed to be positive, nor serialized
         # verbatim (it can contain tensors or arbitrary host objects).
         branch_metadata = (None if branch_reason == "unsupported_branch_layout"
@@ -140,9 +139,7 @@ class Krea2AFMAttentionOverride:
             self.config.start_percent <= progress.progress <= self.config.end_percent)
         if progress is not None and not in_window:
             state.reasons["outside_window"] += 1
-        mask_present = kwargs.get("mask") is not None
-        if mask_present:
-            state.reasons["unsupported_mask"] += 1
+        mask_present = kwargs.get("mask") is not None or kwargs.get("attn_mask") is not None
         original_scale = kwargs.get("scale")
         if original_scale is None:
             original_scale = query.shape[-1] ** -.5
@@ -155,7 +152,9 @@ class Krea2AFMAttentionOverride:
         if original_scale is None and self.config.mode != "edit":
             raise AFMUnsupportedError("unsupported_scale", "invalid attention scale")
         metadata = {
-            "mode": self.config.mode, "block_index": block, "total_blocks": options["total_blocks"],
+            "mode": self.config.mode, "normalization_mode": self.config.normalization_mode,
+            "normalization_version": 1, "filter_signature": _filter_signature(self.config),
+            "batch_size": query.shape[0], "block_index": block, "total_blocks": options["total_blocks"],
             "step_index": progress.step_index if progress else None,
             "sigma": progress.sigma if progress else None,
             "progress": progress.progress if progress else None,
@@ -175,12 +174,17 @@ class Krea2AFMAttentionOverride:
             "augmented_head_dim": None, "original_scale": original_scale,
             "fft_dtype": None, "sdpa_dtype": None, "sdpa_kernel": "unknown",
             "alpha_lf": None, "alpha_hf": None, "max_logits_delta": None,
-            "rho_text_conditional": None, "text_attention_mass": None,
+            "text_attention_mass": None,
             "head_chunk_size": None, "query_chunk_size": None, "estimated_workspace_mib": None,
         }
         skip_edit = (not in_scope or branch_reason == "branch_not_selected"
                      or (progress is not None and not in_window)
                      or (self.config.strength == 0 and self.config.zero_strength_mode == "original"))
+        if branch_reason and (self.config.mode != "edit" or skip_edit):
+            state.reasons[branch_reason] += 1
+        if mask_present and (self.config.mode != "edit" or skip_edit) and not needs_diagnostics:
+            state.reasons["unsupported_mask"] += 1
+        state.observed_calls += 1
         if self.config.mode == "edit" and not skip_edit:
             return self._edit(backend, q, k, v, heads, kwargs, tensors, layout,
                               progress, selected, branch_reason, state, metadata, needs_diagnostics)
@@ -198,7 +202,6 @@ class Krea2AFMAttentionOverride:
                 self._record_failure(state, exc, metadata)
                 if self.config.fail_mode == "raise":
                     raise
-        state.observed_calls += 1
         emit_record(self.config, state.run_id, "attention", **metadata)
         return output
 
@@ -220,6 +223,7 @@ class Krea2AFMAttentionOverride:
             signature = _runtime_signature(query, layout, self.config, state, options, metadata)
             choice, chunks = _select_edit_plan(self.config, signature, state.profiles,
                                                tuple(query.shape), tuple(key.shape), layout, query.dtype)
+            state.reasons[choice.reason] += 1
             metadata.update(selected_implementation=choice.implementation,
                             selection_reason=choice.reason, profile_id=choice.profile_id)
             if query.device.type == "cuda":
@@ -319,11 +323,21 @@ class Krea2AFMAttentionOverride:
                                              baseline[row, :layout.image_slice[0]])
         records = collect_attention_diagnostics(*tensors, layout, self.config, progress, chunks,
                                                 metadata["original_scale"], selected, edit_applied=edited)
-        common = {name: metadata[name] for name in ("step_index", "model_eval_index", "block_index")}
+        common = {name: metadata[name] for name in (
+            "step_index", "model_eval_index", "block_index", "mode", "progress",
+            "normalization_mode", "normalization_version", "selected_implementation",
+            "filter_signature", "cond_or_uncond", "selected_batch_rows", "batch_size",
+        )}
+        branches = metadata["cond_or_uncond"]
+        samples_per_branch = query.shape[0] // len(branches)
         for record in records:
             event = record.pop("event")
-            emit_record(self.config, state.run_id, event, **common,
-                        unselected_rows_preserved=bool(preserved), **record)
+            row = record["branch"]
+            fields = {**common, **record, "edit_applied": edited,
+                      "unselected_rows_preserved": bool(preserved),
+                      "branch_kind": branches[row // samples_per_branch],
+                      "sample_index": row % samples_per_branch}
+            emit_record(self.config, state.run_id, event, **fields)
 
     def _record_failure(self, state, error, metadata):
         if isinstance(error, AFMUnsupportedError):
@@ -363,7 +377,8 @@ def _validate_edit_options(kwargs):
 def _select_edit_plan(config, signature, profiles, q_shape, k_shape, layout, dtype):
     from .memory import choose_chunks
     from .selection import BackendSelection, select_implementation
-    is_auto = config.strength != 0 and config.implementation == "auto"
+    is_auto = (config.strength != 0 and config.implementation == "auto"
+               and config.normalization_mode == "joint")
     if is_auto and profiles and signature.get("sdpa_explicit_scale", False):
         try:
             augmented_plan = choose_chunks(q_shape, k_shape, layout, config, "augmented", dtype)
@@ -395,9 +410,7 @@ def _runtime_signature(query, layout, config, state, options, metadata):
         batch=query.shape[0], heads=query.shape[1], grid_h=layout.grid[0], grid_w=layout.grid[1],
         head_chunk_size=config.head_chunk_size, query_chunk_size=config.query_chunk_size,
         strength=config.strength,
-        filter_signature={"version": "radial_v1", "cutoff": config.cutoff, "soft_mask": config.soft_mask,
-                          "mask_width": config.mask_width, "preserve_dc": config.preserve_dc,
-                          "schedule": config.schedule, "augmented_precision": config.augmented_precision},
+        filter_signature=_filter_signature(config),
     )
     signature["sdpa_settings"] = {
         name: bool(getattr(torch.backends.cuda, name + "_sdp_enabled")())
@@ -408,3 +421,10 @@ def _runtime_signature(query, layout, config, state, options, metadata):
         signature["gpu"] = torch.cuda.get_device_name(query.device)
         signature["compute_capability"] = list(torch.cuda.get_device_capability(query.device))
     return signature
+
+
+def _filter_signature(config):
+    return {"version": "radial_v1", "cutoff": config.cutoff, "soft_mask": config.soft_mask,
+            "mask_width": config.mask_width, "preserve_dc": config.preserve_dc,
+            "schedule": config.schedule, "augmented_precision": config.augmented_precision,
+            "normalization_mode": config.normalization_mode, "normalization_version": 1}

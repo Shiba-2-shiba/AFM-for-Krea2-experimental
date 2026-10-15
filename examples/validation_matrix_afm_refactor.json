@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "description": "Paired schema-5 attention experiment. The existing validation_matrix.json retains the true-baseline smoke control.",
+  "runs": [
+    {
+      "id": "attention-baseline-seed-20260930",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20260930,
+      "control": "baseline",
+      "condition_role": "baseline",
+      "phase": "smoke",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "20": {
+          "mode": "observe",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0.05,
+          "spectral_diag": "sampled",
+          "diagnostic_top_k": 8,
+          "diagnostic_head_indices": "0",
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false
+        }
+      }
+    },
+    {
+      "id": "joint-manual-005-seed-20260930",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20260930,
+      "control": "joint",
+      "condition_role": "joint",
+      "phase": "smoke",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "joint",
+          "implementation": "manual",
+          "strength": 0.05,
+          "spectral_diag": "sampled",
+          "diagnostic_top_k": 8,
+          "diagnostic_head_indices": "0",
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false
+        }
+      }
+    },
+    {
+      "id": "preserve-manual-005-seed-20260930",
+      "workflow": "krea2_afm_experiment_api.json",
+      "seed": 20260930,
+      "control": "preserve_text_mass",
+      "condition_role": "preserve_text_mass",
+      "phase": "smoke",
+      "repeat_index": 0,
+      "diagnostic_mode": "spectral",
+      "diagnostic_top_k": 8,
+      "diagnostic_radial_bins": 32,
+      "node_inputs": {
+        "20": {
+          "mode": "edit",
+          "normalization_mode": "preserve_text_mass",
+          "implementation": "manual",
+          "strength": 0.05,
+          "spectral_diag": "sampled",
+          "diagnostic_top_k": 8,
+          "diagnostic_head_indices": "0",
+          "diagnostic_radial_bins": 32,
+          "compare_kernels": false
+        }
+      }
+    }
+  ]
+}

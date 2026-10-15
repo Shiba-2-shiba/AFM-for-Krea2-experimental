@@ -70,8 +70,63 @@ def test_edit_controls_use_shared_config_defaults(node_module):
     fields = {field.name: field for field in node_module.define_schema().inputs}
     for name in ("strength", "implementation", "cutoff", "schedule", "preserve_dc", "soft_mask",
                  "mask_width", "zero_strength_mode", "head_chunk_size", "query_chunk_size",
-                 "max_workspace_mib", "augmented_precision", "spectral_diag", "compare_kernels"):
+                 "max_workspace_mib", "augmented_precision", "spectral_diag", "compare_kernels",
+                 "normalization_mode", "diagnostic_head_indices", "diagnostic_radial_bins"):
         assert fields[name].default == getattr(AFMConfig(), name)
+
+
+def test_new_controls_are_optional_advanced_and_appended(node_module):
+    fields = node_module.define_schema().inputs
+    names = [field.name for field in fields]
+    assert names[-3:] == [
+        "normalization_mode",
+        "diagnostic_head_indices",
+        "diagnostic_radial_bins",
+    ]
+    for field in fields[-3:]:
+        assert field.optional is True
+        assert field.advanced is True
+
+
+def test_execute_omitting_new_controls_preserves_legacy_defaults(node_module, host):
+    patched = node_module.execute(host, mode="edit", jsonl_path="").result[0]
+    config = patched.model_options["transformer_options"]["krea2_afm_config"]
+    assert config.normalization_mode == "joint"
+    assert config.diagnostic_head_indices == ""
+    assert config.diagnostic_radial_bins == 32
+
+
+def test_execute_forwards_new_controls(node_module, host):
+    patched = node_module.execute(
+        host,
+        mode="edit",
+        jsonl_path="",
+        normalization_mode="preserve_text_mass",
+        diagnostic_head_indices="1,3",
+        diagnostic_radial_bins=64,
+    ).result[0]
+    config = patched.model_options["transformer_options"]["krea2_afm_config"]
+    assert config.normalization_mode == "preserve_text_mass"
+    assert config.diagnostic_head_indices == "1,3"
+    assert config.diagnostic_radial_bins == 64
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [("", (0, 1, 2)), ("2", (2,)), (" 3, 1 ", (3, 1))],
+)
+def test_parse_diagnostic_heads_uses_physical_indices(value, expected):
+    from afm.config import parse_diagnostic_heads
+
+    assert parse_diagnostic_heads(value, head_count=4, limit=3) == expected
+
+
+@pytest.mark.parametrize("value", ["-1", "1,1", "4", "1,,2", "one"])
+def test_parse_diagnostic_heads_rejects_invalid_or_duplicate_indices(value):
+    from afm.config import parse_diagnostic_heads
+
+    with pytest.raises(ValueError, match="diagnostic_head_indices"):
+        parse_diagnostic_heads(value, head_count=4, limit=2)
 
 
 @pytest.mark.parametrize("path", ["../escape.jsonl", "krea2_afm/../../escape.jsonl",

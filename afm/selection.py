@@ -4,7 +4,7 @@ import json
 import math
 from pathlib import Path
 
-from .config import AFMConfig
+from .config import AFMConfig, validate_normalization_options
 from .runtime import AFMUnsupportedError
 
 SIGNATURE_KEYS = (
@@ -38,6 +38,14 @@ def _matches(signature: dict, profile: dict) -> bool:
                for key in ("numerical_report", "benchmark_manifest")):
         return False
     expected = profile.get("signature", {})
+    for candidate in (signature, expected):
+        if not isinstance(candidate, dict):
+            return False
+        filter_spec = candidate.get("filter_signature", {})
+        if (not isinstance(filter_spec, dict)
+                or filter_spec.get("normalization_mode") not in ("joint", "preserve_text_mass")
+                or filter_spec.get("normalization_version") != 1):
+            return False
     if signature.get("device_type") != "cuda":
         return False
     for key in SIGNATURE_KEYS:
@@ -57,6 +65,7 @@ def _matches(signature: dict, profile: dict) -> bool:
 
 def select_implementation(config: AFMConfig, runtime_signature: dict,
                           profiles: list[dict]) -> BackendSelection:
+    validate_normalization_options(config)
     if config.mode != "edit":
         return BackendSelection("original", "diagnostic_passthrough")
     requested = config.zero_strength_mode if config.strength == 0 else config.implementation

@@ -1,5 +1,7 @@
 # Implementation status
 
+> 2026-10-15 refactor: ユーザー指定により今回の差分は未検証です。以前のPASS記録と区別し、[今回の実装引き継ぎ](refactoring-implementation-2026-10-15.md)を参照してください。
+
 Plan: `Krea2_AFM_Codex_Implementation_Plan_2026-09-30.md`, revision 2.
 
 ## Current milestone
@@ -167,3 +169,7 @@ boundaries found **no unresolved issues**. Its own targeted suite passed all
 26 tests. Previously reviewed kernel/runtime internals were not reopened beyond
 those integrations. Real-model/GPU/performance/quality/profile adoption remain
 outside this review. Work is retained locally on `feat/krea2-afm-edit`.
+
+## 2026-10-15 refactoring implementation — UNVERIFIED
+
+The user explicitly deferred verification for this implementation turn. T0–T5 source/test/tooling changes are recorded in `refactoring-implementation-2026-10-15.md`. No tests, compilation, lint, typecheck, workflow dry-run, server/UI, model/GPU, performance validation or independent code review was executed for this diff. Prior 241-pass evidence applies to pre-refactor HEAD 944e507 only. T6–T8 and all validation gates remain pending.

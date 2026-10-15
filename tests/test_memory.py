@@ -120,3 +120,72 @@ def test_float32_augmented_budget_counts_caller_converted_key_value(activation_d
     with pytest.raises(AFMUnsupportedError, match="memory_guard"):
         choose_chunks((1, 1, 20, 8), (1, 1, 20, 8), layout,
                       config, "augmented", activation_dtype)
+
+
+def test_preserve_text_mass_counts_partition_correction_and_corrected_logits():
+    layout = _layout(t=8, h=4, w=8)
+    joint = AFMConfig(
+        head_chunk_size=2,
+        query_chunk_size=16,
+        max_workspace_mib=64,
+        normalization_mode="joint",
+    )
+    preserve = replace(joint, normalization_mode="preserve_text_mass")
+    joint_plan = choose_chunks(
+        (2, 4, 40, 8), (2, 4, 40, 8), layout, joint, "manual", torch.float16
+    )
+    preserve_plan = choose_chunks(
+        (2, 4, 40, 8), (2, 4, 40, 8), layout, preserve, "manual", torch.float16
+    )
+    assert preserve_plan.estimated_workspace_mib > joint_plan.estimated_workspace_mib
+
+
+def test_preserve_minimum_workspace_boundary_is_enforced_without_partial_plan():
+    layout = _layout(t=2, h=2, w=2)
+    config = AFMConfig(
+        head_chunk_size=1,
+        query_chunk_size=4,
+        max_workspace_mib=64,
+        normalization_mode="preserve_text_mass",
+    )
+    minimum = choose_chunks(
+        (1, 1, 6, 4), (1, 1, 6, 4), layout, config, "manual", torch.float32
+    )
+    exact = choose_chunks(
+        (1, 1, 6, 4),
+        (1, 1, 6, 4),
+        layout,
+        replace(config, max_workspace_mib=minimum.estimated_workspace_mib),
+        "manual",
+        torch.float32,
+    )
+    assert exact == minimum
+    with pytest.raises(AFMUnsupportedError, match="memory_guard"):
+        choose_chunks(
+            (1, 1, 6, 4),
+            (1, 1, 6, 4),
+            layout,
+            replace(config, max_workspace_mib=minimum.estimated_workspace_mib - 1e-9),
+            "manual",
+            torch.float32,
+        )
+
+
+def test_explicit_diagnostic_heads_are_counted_independently_of_kernel_head_chunk():
+    layout = _layout(t=8, h=4, w=8)
+    one = AFMConfig(
+        head_chunk_size=1,
+        query_chunk_size=16,
+        max_workspace_mib=64,
+        spectral_diag="sampled",
+        diagnostic_head_limit=1,
+    )
+    selected = replace(one, diagnostic_head_indices="0,3")
+    one_plan = choose_chunks(
+        (1, 4, 40, 8), (1, 4, 40, 8), layout, one, "manual", torch.float32
+    )
+    selected_plan = choose_chunks(
+        (1, 4, 40, 8), (1, 4, 40, 8), layout, selected, "manual", torch.float32
+    )
+    assert selected_plan.head_chunk_size == 1
+    assert selected_plan.estimated_workspace_mib > one_plan.estimated_workspace_mib

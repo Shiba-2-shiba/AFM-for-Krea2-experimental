@@ -38,6 +38,9 @@ class AFMConfig:
     diagnostic_top_k: int = 4
     compare_kernels: bool = False
     benchmark: bool = False
+    normalization_mode: str = "joint"
+    diagnostic_head_indices: str = ""
+    diagnostic_radial_bins: int = 32
 
 
 def parse_block_scope(scope: str, block_count: int) -> frozenset[int]:
@@ -59,6 +62,7 @@ def parse_block_scope(scope: str, block_count: int) -> frozenset[int]:
 def validate_config(config: AFMConfig, caps: "Krea2Capabilities") -> None:
     enums = {
         "mode": ("off", "discover", "observe", "edit"),
+        "normalization_mode": ("joint", "preserve_text_mass"),
         "implementation": ("auto", "manual", "augmented"),
         "schedule": ("curve",),
         "branch_mode": ("positive_only", "negative_only", "both"),
@@ -80,13 +84,60 @@ def validate_config(config: AFMConfig, caps: "Krea2Capabilities") -> None:
     if not 0 < config.cutoff < 1 or not 0 < config.mask_width <= 1:
         raise ValueError("cutoff must be in (0,1); mask_width must be in (0,1]")
     for name in ("head_chunk_size", "query_chunk_size", "diagnostic_every_n_steps",
-                 "diagnostic_head_limit", "diagnostic_query_chunk_size", "diagnostic_top_k"):
+                 "diagnostic_head_limit", "diagnostic_query_chunk_size", "diagnostic_top_k",
+                 "diagnostic_radial_bins"):
         value = getattr(config, name)
         if type(value) is not int or value <= 0:
             raise ValueError(f"{name} must be a positive integer")
+    if config.diagnostic_radial_bins > 256:
+        raise ValueError("diagnostic_radial_bins must be within 1..256")
     if config.max_workspace_mib <= 0:
         raise ValueError("max_workspace_mib must be positive")
     if config.benchmark and (config.spectral_diag != "off" or config.compare_kernels):
         raise ValueError("Disable spectral/comparison diagnostics for benchmark measurements")
+    validate_normalization_options(config)
+    parse_diagnostic_heads(config.diagnostic_head_indices, caps.query_heads, config.diagnostic_head_limit)
     parse_block_scope(config.block_scope, caps.block_count)
     parse_block_scope(config.diagnostic_block_scope, caps.block_count)
+
+
+def parse_diagnostic_heads(indices: str, head_count: int, limit: int) -> tuple[int, ...]:
+    """Return physical head indices, independent of processing chunk size."""
+    if type(head_count) is not int or head_count <= 0 or type(limit) is not int or limit <= 0:
+        raise ValueError("head_count and limit must be positive integers")
+    if not isinstance(indices, str):
+        raise ValueError("diagnostic_head_indices must be a comma-separated string")
+    if not indices.strip():
+        return tuple(range(min(limit, head_count)))
+    parts = indices.split(",")
+    if any(re.fullmatch(r"\s*\d+\s*", part) is None for part in parts):
+        raise ValueError("diagnostic_head_indices must contain non-negative integer indices")
+    selected = tuple(int(part) for part in parts)
+    if len(set(selected)) != len(selected):
+        raise ValueError("diagnostic_head_indices must not contain duplicates")
+    if any(index >= head_count for index in selected):
+        raise ValueError(f"diagnostic_head_indices must be within 0..{head_count - 1}")
+    return selected
+
+
+def validate_normalization_options(config: AFMConfig) -> None:
+    """Reject unsupported semantics before any edit/comparison kernel executes."""
+    if config.normalization_mode not in ("joint", "preserve_text_mass"):
+        raise ValueError("normalization_mode must be joint or preserve_text_mass")
+    if (config.mode == "off"
+            or (config.mode == "edit" and config.strength == 0
+                and config.zero_strength_mode == "original")):
+        return
+    if config.normalization_mode == "preserve_text_mass":
+        from .runtime import AFMUnsupportedError
+        if config.compare_kernels:
+            raise AFMUnsupportedError(
+                "unsupported_normalization_comparison",
+                "manual/augmented comparisons require joint normalization",
+            )
+        requested = config.zero_strength_mode if config.strength == 0 else config.implementation
+        if config.mode == "edit" and requested == "augmented":
+            raise AFMUnsupportedError(
+                "unsupported_normalization_implementation",
+                "preserve_text_mass is implemented only by the manual kernel",
+            )

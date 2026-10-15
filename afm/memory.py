@@ -4,7 +4,7 @@ import math
 
 import torch
 
-from .config import AFMConfig
+from .config import AFMConfig, parse_diagnostic_heads
 from .runtime import AFMUnsupportedError, TokenLayout
 
 _MIB = 2 ** 20
@@ -34,6 +34,8 @@ def choose_chunks(
     implementation: str,
     activation_dtype: torch.dtype,
 ) -> ChunkPlan:
+    if implementation == "augmented" and config.normalization_mode != "joint":
+        raise AFMUnsupportedError("unsupported_normalization_implementation")
     if implementation not in ("manual", "augmented"):
         raise ValueError("implementation must be manual or augmented")
     if len(q_shape) != 4 or tuple(q_shape) != tuple(k_shape):
@@ -64,7 +66,8 @@ def choose_chunks(
         and getattr(config, "augmented_precision", "activation") == "float32"
         and activation_dtype != torch.float32 else 0
     )
-    diagnostic_heads = min(max(int(getattr(config, "diagnostic_head_limit", 1)), 1), heads)
+    parse_diagnostic_heads(config.diagnostic_head_indices, heads, config.diagnostic_head_limit)
+    diagnostic_heads = 1  # Physical heads are diagnosed sequentially.
     diagnostic_queries = min(
         max(int(getattr(config, "diagnostic_query_chunk_size", 128)), 1), image_tokens
     )
@@ -80,6 +83,12 @@ def choose_chunks(
                 caller_kv_conversion_bytes, implementation,
                 diagnostic_heads, diagnostic_queries, diagnostics_enabled, compare_kernels,
             ) / _MIB
+            if config.normalization_mode == "preserve_text_mass":
+                # Corrected output, reduction scratch, z0, edited LSE and c.
+                extra = head_chunk * image_tokens * (2 * text_tokens + 3) * 4
+                if diagnostics_enabled:
+                    extra += diagnostic_heads * image_tokens * (2 * text_tokens + 3) * 4
+                estimate += extra / _MIB
             smallest = estimate if smallest is None else min(smallest, estimate)
             if estimate <= budget:
                 return ChunkPlan(head_chunk, query_chunk, estimate, implementation)
@@ -114,7 +123,8 @@ def _workspace_bytes(batch, heads, tokens, dim, image_tokens, text_tokens,
         # restored logits, and bounded full-key probability diagnostics.
         diagnostic += diagnostic_heads * image_tokens * text_tokens * (4 + 24 + 4)
         diagnostic += image_tokens * 4 * 4  # radius, low, high and gain masks
-        diagnostic += 2 * diagnostic_heads * diagnostic_queries * tokens * 4
+        diagnostic += 6 * diagnostic_heads * diagnostic_queries * tokens * 4
+        diagnostic += 2 * diagnostic_heads * tokens * dim * 4
     if compare_kernels:
         # Metrics retain outputs, differences and effects in float64. Sampled
         # FP32 QKV and the larger comparison kernel scratch can coexist.

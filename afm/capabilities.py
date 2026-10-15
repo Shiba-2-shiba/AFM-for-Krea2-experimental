@@ -1,4 +1,5 @@
 """Feature detection for the native ComfyUI Krea2 implementation."""
+from collections.abc import Mapping
 from dataclasses import dataclass
 import importlib
 
@@ -8,6 +9,7 @@ import torch.nn.functional as F
 CONFIG_KEY = "krea2_afm_config"
 WRAPPER_KEY = "krea2_afm"
 SOURCE_COMFY_COMMIT = "9d80841aa1990305cc7a280c5ea505f317efcc2d"
+KNOWN_MODEL_SKIP_CACHE_KEYS = frozenset(("easycache", "lazycache"))
 
 
 @dataclass(frozen=True)
@@ -104,6 +106,18 @@ def detect_transformer_conflicts(opts: dict, own_config=None) -> list[str]:
         if WRAPPER_KEY in wrappers and CONFIG_KEY not in opts:
             conflicts.append("duplicate Krea2 AFM wrapper")
     return conflicts
+
+
+def detect_model_skip_caches(opts: dict) -> list[str]:
+    """Return known model-skipping cache keys from every wrapper registry bucket."""
+    found = set()
+    wrapper_registry = opts.get("wrappers", {})
+    if not isinstance(wrapper_registry, Mapping):
+        return []
+    for wrappers in wrapper_registry.values():
+        if isinstance(wrappers, Mapping):
+            found.update(KNOWN_MODEL_SKIP_CACHE_KEYS.intersection(wrappers))
+    return sorted(found)
 
 
 def multigpu_enabled(model_patcher, model_options: dict) -> bool:

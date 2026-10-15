@@ -163,3 +163,34 @@ def test_float32_augmented_math_is_not_changed_by_ambient_cpu_autocast():
     with torch.autocast("cpu", dtype=torch.bfloat16):
         actual = augmented_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
     torch.testing.assert_close(actual, expected, atol=1e-5, rtol=1e-5)
+
+
+def test_preserve_text_mass_is_rejected_before_sdpa(monkeypatch):
+    q, k, v, layout, config, progress, chunks = _fixture()
+    config = replace(config, normalization_mode="preserve_text_mass")
+    calls = 0
+
+    def forbidden(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        raise AssertionError("SDPA must not run for unsupported normalization")
+
+    monkeypatch.setattr(F, "scaled_dot_product_attention", forbidden)
+    with pytest.raises(AFMUnsupportedError, match="unsupported_normalization_implementation"):
+        augmented_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
+    assert calls == 0
+
+
+@pytest.mark.parametrize(
+    "mutation,reason",
+    [
+        (lambda q, k, v: (q[:, :, :-1], k, v), "layout"),
+        (lambda q, k, v: (q, k[:, :1], v), "shape|head"),
+        (lambda q, k, v: (q, k, v.double()), "dtype"),
+    ],
+)
+def test_augmented_shared_validation_rejects_incompatible_qkv(mutation, reason):
+    q, k, v, layout, config, progress, chunks = _fixture()
+    q, k, v = mutation(q, k, v)
+    with pytest.raises((AFMUnsupportedError, ValueError, TypeError), match=reason):
+        augmented_image_rows(q, k, v, layout, config, progress, chunks, 0.2)

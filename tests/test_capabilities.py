@@ -3,7 +3,7 @@ from dataclasses import FrozenInstanceError, replace
 import pytest
 import torch
 
-from afm.capabilities import detect_krea2, detect_patch_conflicts
+from afm.capabilities import detect_krea2, detect_model_skip_caches, detect_patch_conflicts
 from afm.config import AFMConfig, validate_config
 
 
@@ -69,3 +69,25 @@ def test_override_and_duplicate_conflicts(host):
 def test_lora_weight_patches_not_an_attention_conflict(host):
     host.patches = {"some.weight": [(1.0, object())]}
     assert detect_patch_conflicts(host) == []
+
+
+@pytest.mark.parametrize(("wrapper_type", "key"), [
+    ("outer_sample", "easycache"),
+    ("calc_cond_batch", "easycache"),
+    ("diffusion_model", "easycache"),
+    ("outer_sample", "lazycache"),
+    ("predict_noise", "lazycache"),
+])
+def test_known_model_skip_cache_detected_in_every_registered_wrapper_type(
+    wrapper_type, key
+):
+    options = {"wrappers": {wrapper_type: {key: [object()]}}}
+    assert detect_model_skip_caches(options) == [key]
+
+
+def test_unrelated_wrapper_keys_are_allowed():
+    options = {"wrappers": {
+        "outer_sample": {"custom_sampler": [object()]},
+        "diffusion_model": {"unrelated_patch": [object()]},
+    }}
+    assert detect_model_skip_caches(options) == []

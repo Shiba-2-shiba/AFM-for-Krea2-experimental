@@ -14,7 +14,8 @@ def signature():
             "sdpa_settings": {"math": True, "flash": True}, "activation_dtype": "torch.float32",
             "original_head_dim": 8, "sdpa_explicit_scale": True,
             "filter_signature": {"version": "radial_v1", "cutoff": .25, "soft_mask": True,
-                                 "mask_width": .05, "preserve_dc": True, "schedule": "curve"},
+                                 "mask_width": .05, "preserve_dc": True, "schedule": "curve",
+                                 "normalization_mode": "joint", "normalization_version": 1},
             "text_tokens": 5, "image_tokens": 15, "batch": 2, "heads": 4,
             "grid_h": 3, "grid_w": 5, "head_chunk_size": 2, "query_chunk_size": 128,
             "strength": .05}
@@ -44,6 +45,43 @@ def test_auto_qualified_profile():
     assert choice.profile_id == "fixture-only"
 
 
+def test_preserve_auto_ignores_qualified_joint_profile():
+    choice = select_implementation(
+        AFMConfig(mode="edit", normalization_mode="preserve_text_mass"),
+        signature(),
+        [profile()],
+    )
+    assert choice.implementation == "manual"
+    assert choice.reason == "normalization_requires_manual"
+    assert choice.profile_id is None
+
+
+def test_preserve_explicit_augmented_is_rejected():
+    with pytest.raises(AFMUnsupportedError, match="unsupported_normalization_implementation"):
+        select_implementation(
+            AFMConfig(
+                mode="edit",
+                implementation="augmented",
+                normalization_mode="preserve_text_mass",
+            ),
+            signature(),
+            [],
+        )
+
+
+def test_preserve_compare_kernels_is_rejected():
+    with pytest.raises(AFMUnsupportedError, match="unsupported_normalization_comparison"):
+        select_implementation(
+            AFMConfig(
+                mode="edit",
+                normalization_mode="preserve_text_mass",
+                compare_kernels=True,
+            ),
+            signature(),
+            [],
+        )
+
+
 @pytest.mark.parametrize("key,value", [("gpu", "other"), ("activation_dtype", "torch.bfloat16"),
                                        ("comfyui_commit", "changed"), ("text_tokens", 6),
                                        ("image_tokens", 16), ("batch", 1), ("grid_h", 5),
@@ -68,10 +106,51 @@ def test_incomplete_profiles_fail_closed(change):
     assert select_implementation(AFMConfig(mode="edit"), signature(), [item]).implementation == "manual"
 
 
+@pytest.mark.parametrize(
+    "change",
+    ["legacy_signature", "different_mode", "different_version"],
+)
+def test_profiles_cannot_cross_normalization_contracts(change):
+    item = deepcopy(profile())
+    if change == "legacy_signature":
+        item["signature"]["filter_signature"].pop("normalization_mode")
+        item["signature"]["filter_signature"].pop("normalization_version")
+    elif change == "different_mode":
+        item["signature"]["filter_signature"]["normalization_mode"] = "preserve_text_mass"
+    else:
+        item["signature"]["filter_signature"]["normalization_version"] = 2
+    choice = select_implementation(AFMConfig(mode="edit"), signature(), [item])
+    assert choice.implementation == "manual"
+    assert choice.reason == "profile_not_qualified"
+
+
 @pytest.mark.parametrize("zero", ["original", "manual", "augmented"])
 def test_zero_control_precedence(zero):
     cfg = AFMConfig(mode="edit", strength=0, implementation="augmented", zero_strength_mode=zero)
     assert select_implementation(cfg, signature(), []).implementation == zero
+
+
+def test_preserve_zero_manual_is_supported():
+    cfg = AFMConfig(
+        mode="edit",
+        strength=0,
+        normalization_mode="preserve_text_mass",
+        zero_strength_mode="manual",
+    )
+    choice = select_implementation(cfg, signature(), [profile()])
+    assert choice.implementation == "manual"
+    assert choice.reason == "zero_control"
+
+
+def test_preserve_zero_augmented_is_rejected():
+    cfg = AFMConfig(
+        mode="edit",
+        strength=0,
+        normalization_mode="preserve_text_mass",
+        zero_strength_mode="augmented",
+    )
+    with pytest.raises(AFMUnsupportedError, match="unsupported_normalization_implementation"):
+        select_implementation(cfg, signature(), [profile()])
 
 
 def test_forced_augmented_requires_scale_support():

@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -8,6 +9,14 @@ from test_node import node_module  # noqa: F401 - shared V3 host fixture
 from scripts.validate_workflow import validate_workflow
 
 ROOT = Path(__file__).resolve().parents[1]
+LEGACY = ROOT / "tests" / "fixtures" / "legacy_944e507"
+LEGACY_SHA256 = {
+    "krea2_afm_baseline_api.json": "06207cbf5e81a292e39f7ca32f7d71e47321a75bedbcd307613aa833a33f24be",
+    "krea2_afm_discover_api.json": "edcdec624db92a6d8d9b78af241025d18aac29330f1608ad8f2e4c33f7796af4",
+    "krea2_afm_edit_api.json": "5d26d62ab958095fd60b071fb1239e7e7f10fb23657772536965a5cfcc2e9d9f",
+    "krea2_afm_edit_ui.json": "0be3fdd6a31ca4fbb45d3ee796337de6c0473c63a140b09bb56e28c4ea7263d0",
+    "krea2_afm_observe_api.json": "e1699aadfb952083a2bcb34a99e6df0fc0cd5fdc27f6e8744908413a9ea6a279",
+}
 
 
 @pytest.mark.parametrize("mode", ["baseline", "discover", "observe", "edit"])
@@ -24,10 +33,78 @@ def test_example_graphs_are_connected(mode):
 
 
 def test_examples_match_v3_node_schema(node_module):
-    fields = {field.name for field in node_module.define_schema().inputs}
+    schema_fields = node_module.define_schema().inputs
+    fields = {field.name for field in schema_fields}
+    required = {field.name for field in schema_fields if not getattr(field, "optional", False)}
     for mode in ("discover", "observe", "edit"):
         graph = json.loads((ROOT / "examples" / f"krea2_afm_{mode}_api.json").read_text())
-        assert set(graph["20"]["inputs"]) == fields
+        inputs = set(graph["20"]["inputs"])
+        assert required <= inputs <= fields
+
+
+def test_legacy_fixture_bytes_are_pinned_to_944e507():
+    assert {path.name for path in LEGACY.iterdir()} == set(LEGACY_SHA256)
+    for name, expected in LEGACY_SHA256.items():
+        assert hashlib.sha256((LEGACY / name).read_bytes()).hexdigest() == expected
+
+
+def _patch_object_info(node_module):
+    required = {}
+    optional = {}
+    for field in node_module.define_schema().inputs:
+        target = optional if getattr(field, "optional", False) else required
+        target[field.name] = ["*"]
+    return {
+        "Loader": {"input": {"required": {}}, "output": ["MODEL"]},
+        "Krea2AFMModelPatch": {
+            "input": {"required": required, "optional": optional},
+            "output": ["MODEL"],
+        },
+    }
+
+
+def test_legacy_api_omits_only_new_optional_inputs(node_module):
+    legacy = json.loads((LEGACY / "krea2_afm_edit_api.json").read_text())
+    legacy_inputs = dict(legacy["20"]["inputs"])
+    legacy_inputs["model"] = ["1", 0]
+    graph = {
+        "1": {"class_type": "Loader", "inputs": {}},
+        "20": {"class_type": "Krea2AFMModelPatch", "inputs": legacy_inputs},
+    }
+    assert validate_workflow(graph, _patch_object_info(node_module)) == []
+    assert "normalization_mode" not in legacy_inputs
+    assert "diagnostic_head_indices" not in legacy_inputs
+    assert "diagnostic_radial_bins" not in legacy_inputs
+
+
+def test_schema_validation_still_rejects_missing_required_and_unknown_inputs(node_module):
+    legacy = json.loads((LEGACY / "krea2_afm_edit_api.json").read_text())
+    legacy_inputs = dict(legacy["20"]["inputs"])
+    legacy_inputs["model"] = ["1", 0]
+    base = {
+        "1": {"class_type": "Loader", "inputs": {}},
+        "20": {"class_type": "Krea2AFMModelPatch", "inputs": legacy_inputs},
+    }
+    missing = copy.deepcopy(base)
+    missing["20"]["inputs"].pop("mode")
+    assert any("missing required input mode" in error
+               for error in validate_workflow(missing, _patch_object_info(node_module)))
+    unknown = copy.deepcopy(base)
+    unknown["20"]["inputs"]["future_typo"] = True
+    assert any("unknown input future_typo" in error
+               for error in validate_workflow(unknown, _patch_object_info(node_module)))
+
+
+def test_legacy_ui_widget_values_remain_in_the_original_order(node_module):
+    ui = json.loads((LEGACY / "krea2_afm_edit_ui.json").read_text())
+    api = json.loads((LEGACY / "krea2_afm_edit_api.json").read_text())
+    patch = next(node for node in ui["nodes"] if node["id"] == 20)
+    legacy_widget_names = [name for name in api["20"]["inputs"] if name != "model"]
+    current_widget_names = [
+        field.name for field in node_module.define_schema().inputs if field.name != "model"
+    ]
+    assert current_widget_names[:len(legacy_widget_names)] == legacy_widget_names
+    assert patch["widgets_values"] == [api["20"]["inputs"][name] for name in legacy_widget_names]
 
 
 def test_missing_links_and_cycles_rejected():
@@ -72,5 +149,8 @@ def test_edit_ui_links_and_widgets_match_api(node_module):
         assert api[str(target)]["inputs"][input_name] == [str(source), slot]
         assert by_id[target]["inputs"][target_slot]["link"] == link_id
         assert link_id in by_id[source]["outputs"][slot]["links"]
-    widget_names = [field.name for field in node_module.define_schema().inputs if field.name != "model"]
+    widget_names = [
+        field.name for field in node_module.define_schema().inputs
+        if field.name != "model" and field.name in api["20"]["inputs"]
+    ]
     assert by_id[20]["widgets_values"] == [api["20"]["inputs"][name] for name in widget_names]

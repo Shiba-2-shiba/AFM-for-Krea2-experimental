@@ -1,5 +1,8 @@
 # Krea2 AFM 実装の引き継ぎ
 
+**最新: 2026-10-15** — リファクタリング実装とテストコードを追加し、ユーザー指定により検証は未実施です。[今回の実装引き継ぎ](docs/refactoring-implementation-2026-10-15.md)を先に参照してください。以下のPASS・レビュー記録は2026-09-30の旧実装に対する履歴です。
+
+
 更新日: 2026-09-30。再開作業を完了。Task 0–4とTask 5のオフラインツールは実装済みです。
 最新の検証記録は `docs/implementation-status.md` と `docs/validation.md` を参照。
 停止前の引き継ぎ原文はローカル `outputs/handoff-before-resume.md` に保存しています。

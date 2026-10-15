@@ -21,6 +21,11 @@ def _valid_report():
                 "model_eval_index": 0,
                 "block_index": 0,
                 "branch": 0,
+                "head_index": 0,
+                "schema_version": 5,
+                "normalization_mode": "joint",
+                "normalization_version": 1,
+                "selected_implementation": "augmented",
                 "dtype": "float16",
                 "strength": strength,
                 "candidate_implementation": "augmented",
@@ -39,7 +44,11 @@ def _valid_report():
             }
         )
     return {
+        "schema_version": 5,
         "run_id": "synthetic",
+        "config": {"normalization_mode": "joint", "normalization_version": 1,
+                   "diagnostic_metric_version": "text_spectrum_v2"},
+        "actual_implementations": ["augmented"],
         "summary": {
             "status": "ok",
             "observed_calls": 3,
@@ -51,16 +60,26 @@ def _valid_report():
         "artifacts": {"images": [{"filename": "synthetic.png"}]},
         "comparisons": comparisons,
         "benchmark": {
+            "normalization_mode": "joint",
+            "actual_implementations": ["manual", "augmented"],
+            "shape_signature": {"batch": 1, "width": 512, "height": 512},
+            "execution_order": ["manual", "augmented"] * 5,
             "measurement_source": "server",
             "cuda_synchronized": True,
             "diagnostics_enabled": False,
             "warmup_runs_per_implementation": 1,
             "alternating": True,
             "manual": [
-                {"generation_seconds": 10.0, "peak_allocated_bytes": 100} for _ in range(5)
+                {"generation_seconds": 10.0, "peak_allocated_bytes": 100,
+                 "actual_implementation": "manual", "normalization_mode": "joint",
+                 "shape_signature": {"batch": 1, "width": 512, "height": 512}}
+                for _ in range(5)
             ],
             "augmented": [
-                {"generation_seconds": 9.4, "peak_allocated_bytes": 100} for _ in range(5)
+                {"generation_seconds": 9.4, "peak_allocated_bytes": 100,
+                 "actual_implementation": "augmented", "normalization_mode": "joint",
+                 "shape_signature": {"batch": 1, "width": 512, "height": 512}}
+                for _ in range(5)
             ],
         },
     }
@@ -124,7 +143,9 @@ def test_profile_requires_correctness_and_benchmark():
 def test_profile_rejects_variability_larger_than_measured_difference():
     report = _valid_report()
     report["benchmark"]["augmented"] = [
-        {"generation_seconds": value, "peak_allocated_bytes": 100}
+        {"generation_seconds": value, "peak_allocated_bytes": 100,
+         "actual_implementation": "augmented", "normalization_mode": "joint",
+         "shape_signature": {"batch": 1, "width": 512, "height": 512}}
         for value in (8.0, 11.0, 8.0, 11.0, 9.4)
     ]
     assert qualify_profile(report) is False
@@ -170,11 +191,13 @@ def test_profile_treats_activation_dtype_aliases_as_one_dtype(aliases):
 def test_runtime_jsonl_is_grouped_by_run_and_maps_server_benchmark(tmp_path):
     records = [
         {
+            "schema_version": 4,
             "run_id": "run-a",
             "event": "run_start",
             "config": {"implementation": "manual", "benchmark": True},
         },
         {
+            "schema_version": 4,
             "run_id": "run-a",
             "event": "kernel_comparison",
             "step_index": 1,
@@ -193,6 +216,7 @@ def test_runtime_jsonl_is_grouped_by_run_and_maps_server_benchmark(tmp_path):
                         "effect_rel_l2": 0.1, "effect_resolved": True, "finite": True},
         },
         {
+            "schema_version": 4,
             "run_id": "run-a",
             "event": "run_summary",
             "status": "ok",
@@ -229,6 +253,15 @@ def test_comparison_keys_are_namespaced_by_run_id():
     summarize_run(report)
 
 
+def test_schema5_comparison_identity_includes_actual_head_index():
+    report = _valid_report()
+    second_head = copy.deepcopy(report["comparisons"][0])
+    second_head["head_index"] = 7
+    report["comparisons"].append(second_head)
+
+    summarize_run(report)
+
+
 def test_comparison_key_indices_and_branch_must_be_nonnull_integers():
     report = _valid_report()
     report["comparisons"][0]["branch"] = None
@@ -253,3 +286,66 @@ def test_edited_calls_cannot_exceed_observed_calls():
     report["summary"].update(observed_calls=1, edited_calls=2)
     with pytest.raises(ReportValidationError, match="exceed"):
         summarize_run(report)
+
+
+def test_schema4_spectral_metric_is_explicitly_centered_legacy(tmp_path):
+    rows = [
+        {"schema_version": 4, "run_id": "legacy", "event": "run_start", "config": {}},
+        {"schema_version": 4, "run_id": "legacy", "event": "spectral_diagnostic",
+         "rho_text_conditional_before": 0.6, "rho_text_conditional_after": 0.4},
+        {"schema_version": 4, "run_id": "legacy", "event": "run_summary", "status": "ok",
+         "observed_calls": 1, "edited_calls": 0, "fallback_calls": 0,
+         "nan_events": 0, "oom_events": 0},
+    ]
+    path = tmp_path / "legacy.jsonl"
+    path.write_text("\n".join(json.dumps(row) for row in rows))
+
+    report = load_reports(path)[0]
+    spectral = report["spectral_events"][0]
+
+    assert report["schema_version"] == 4
+    assert spectral["metric_version"] == "centered_legacy_v4"
+    assert spectral["rho_text_centered_before"] == 0.6
+    assert spectral["rho_text_raw_before"] is None
+    assert spectral["rho_text_radial_binned_after"] is None
+    assert qualify_profile(report) is False
+    assert any("schema 5" in error for error in profile_qualification_errors(report))
+
+
+def test_schema5_profile_requires_explicit_mode_and_actual_implementation():
+    report = _valid_report()
+    assert qualify_profile(report) is True
+
+    for mutation in (
+        lambda value: value["config"].pop("normalization_mode"),
+        lambda value: value["config"].pop("normalization_version"),
+        lambda value: value.update(actual_implementations=["manual", "augmented"]),
+    ):
+        changed = copy.deepcopy(report)
+        mutation(changed)
+        assert qualify_profile(changed) is False
+
+
+def test_runtime_auto_benchmark_is_attributed_to_actual_manual_path(tmp_path):
+    records = [
+        {"schema_version": 5, "run_id": "auto", "event": "run_start", "config": {
+            "implementation": "auto", "normalization_mode": "joint",
+            "normalization_version": 1}},
+        {"schema_version": 5, "run_id": "auto", "event": "attention",
+         "selected_implementation": "manual", "q_shape": [1, 1, 20, 8],
+         "grid": [4, 4], "activation_dtype": "torch.float32",
+         "head_chunk_size": 1, "query_chunk_size": 4,
+         "filter_signature": {"normalization_mode": "joint", "normalization_version": 1}},
+        {"schema_version": 5, "run_id": "auto", "event": "run_summary",
+         "status": "ok", "observed_calls": 1, "edited_calls": 1, "fallback_calls": 0,
+         "nan_events": 0, "oom_events": 0, "measurement_source": "server",
+         "cuda_synchronized": True, "diagnostics_enabled": False,
+         "wall_seconds": 2.0, "peak_allocated_bytes": 1024},
+    ]
+    log = tmp_path / "auto.jsonl"
+    log.write_text("\n".join(json.dumps(row) for row in records), encoding="utf-8")
+    benchmark = load_reports(log)[0]["benchmark"]
+    assert len(benchmark["manual"]) == 1
+    assert benchmark["augmented"] == []
+    assert benchmark["manual"][0]["actual_implementation"] == "manual"
+    assert benchmark["manual"][0]["normalization_mode"] == "joint"

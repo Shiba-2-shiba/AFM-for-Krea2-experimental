@@ -195,6 +195,132 @@ def test_edit_installs_only_for_nonzero_original(host, strength):
     assert bool(clone.model_options["transformer_options"].get("patches")) == (strength != 0)
 
 
+@pytest.mark.parametrize(("wrapper_type", "key"), [
+    ("outer_sample", "easycache"),
+    ("calc_cond_batch", "easycache"),
+    ("diffusion_model", "easycache"),
+    ("outer_sample", "lazycache"),
+    ("predict_noise", "lazycache"),
+])
+def test_cache_installed_before_afm_is_rejected_without_mutating_host(
+    host, wrapper_type, key
+):
+    options = host.model_options["transformer_options"]
+    marker = object()
+    options["wrappers"] = {wrapper_type: {key: [marker]}}
+    original = host.model_options
+
+    with pytest.raises(AFMUnsupportedError) as error:
+        install_krea2_afm(host, AFMConfig())
+
+    assert error.value.reason == "unsupported_model_skip_cache"
+    assert host.model_options is original
+    assert set(options) == {"wrappers"}
+    assert options["wrappers"][wrapper_type][key] == [marker]
+
+
+@pytest.mark.parametrize("key", ["easycache", "lazycache"])
+def test_cache_installed_after_afm_is_rejected_at_run_entry_and_restores_original(host, key):
+    clone = install_krea2_afm(host, AFMConfig())
+    options = clone.model_options["transformer_options"]
+    afm_wrapper = options["wrappers"]["outer_sample"]["krea2_afm"][0]
+    options["wrappers"].setdefault("predict_noise", {})[key] = [object()]
+    original = clone.model_options
+    guider = SimpleNamespace(model_options=original, model_patcher=clone)
+    entered = []
+
+    with pytest.raises(AFMUnsupportedError) as error:
+        afm_wrapper(Executor(guider, lambda: entered.append(True)))
+
+    assert error.value.reason == "unsupported_model_skip_cache"
+    assert not entered
+    assert guider.model_options is original
+    assert RUN_KEY not in original["transformer_options"]
+
+
+def test_unrelated_wrapper_is_passed_through_at_install_and_run(host):
+    options = host.model_options["transformer_options"]
+    marker = "pass-through"
+    options["wrappers"] = {"predict_noise": {"unrelated_cache": [marker]}}
+    clone = install_krea2_afm(host, AFMConfig())
+    clone_options = clone.model_options["transformer_options"]
+    wrapper = clone_options["wrappers"]["outer_sample"]["krea2_afm"][0]
+    guider = SimpleNamespace(model_options=clone.model_options, model_patcher=clone)
+
+    assert wrapper(Executor(guider, lambda: "ok")) == "ok"
+    assert clone_options["wrappers"]["predict_noise"]["unrelated_cache"] == [marker]
+
+
+def test_cache_added_during_active_run_is_rejected_before_diffusion_forward(host):
+    config = AFMConfig()
+    state = RunState()
+    options = {
+        RUN_KEY: state,
+        "wrappers": {"calc_cond_batch": {"easycache": [object()]}},
+    }
+    entered = []
+
+    with pytest.raises(AFMUnsupportedError) as error:
+        make_diffusion_wrapper(config)(
+            Executor(host.model.diffusion_model, lambda *args: entered.append(True)),
+            torch.zeros(1, 16, 4, 4),
+            torch.ones(1),
+            torch.zeros(1, 3, 8),
+            transformer_options=options,
+        )
+
+    assert error.value.reason == "unsupported_model_skip_cache"
+    assert not entered
+    assert state.model_evaluations == 0
+
+
+@pytest.mark.parametrize("config", [
+    AFMConfig(mode="off"),
+    AFMConfig(mode="edit", strength=0.0, zero_strength_mode="original"),
+])
+def test_inactive_original_path_does_not_reject_cache_or_install_hooks(host, config):
+    options = host.model_options["transformer_options"]
+    options["wrappers"] = {"outer_sample": {"easycache": [object()]}}
+
+    clone = install_krea2_afm(host, config)
+
+    clone_options = clone.model_options["transformer_options"]
+    assert set(clone_options["wrappers"]) == {"outer_sample"}
+    assert set(clone_options["wrappers"]["outer_sample"]) == {"easycache"}
+    assert not clone_options.get("patches")
+
+
+def test_missing_schedule_is_scoped_to_each_continuous_run(host):
+    config = AFMConfig()
+    outer = make_outer_sample_wrapper(config)
+    diffusion = make_diffusion_wrapper(config)
+    original = host.model_options
+    guider = SimpleNamespace(model_options=original, model_patcher=host)
+    states = []
+
+    def sample():
+        options = guider.model_options["transformer_options"]
+        states.append(options[RUN_KEY])
+        latent = torch.zeros(1, 16, 4, 4)
+        return diffusion(
+            Executor(host.model.diffusion_model, lambda *args: args[0]),
+            latent,
+            torch.ones(1),
+            torch.zeros(1, 3, 8),
+            transformer_options=options,
+        )
+
+    for _ in range(2):
+        assert outer(Executor(guider, sample)).shape == (1, 16, 4, 4)
+        assert guider.model_options is original
+
+    assert len(states) == 2
+    assert states[0] is not states[1]
+    assert all(state.finished for state in states)
+    assert all(state.model_evaluations == 1 for state in states)
+    assert all(state.reasons == {"unsupported_progress": 1} for state in states)
+
+
 @pytest.mark.parametrize("patch_name", ["post_input", "attn1_patch", "attn1_output_patch"])
 def test_patch_added_after_afm_is_rejected_before_forward(host, patch_name):
     clone = install_krea2_afm(host, AFMConfig())
