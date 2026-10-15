@@ -1,0 +1,3239 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-15",
+  "implementation_commit": "31df9b01b9a1fee6c3cadc3c6274d5eb90b262e2",
+  "host": {
+    "comfyui": "0.37.0",
+    "source_commit": "15ef24d1c0333a3eba56c5cd153d8db65363ff8f",
+    "python": "3.12.11",
+    "pytorch": "2.12.0+rocm7.14.0",
+    "gpu": "AMD Radeon AI PRO R9700",
+    "attention_dtype": "bfloat16",
+    "model": "intorealismAsian_k2JAVFLASHV1.safetensors",
+    "weight_format": "INT8 convrot",
+    "clip": "qwen3vl_4b_fp8_scaled.safetensors",
+    "vae": "qwen_image_vae.safetensors"
+  },
+  "regression": {
+    "passed": 342,
+    "failed": 19,
+    "deselected": 1,
+    "exit_code": 1,
+    "source_contract_tests": 3,
+    "source_contract_skipped": 0,
+    "environment": "ComfyUI Python/PyTorch with existing pytest from global site-packages",
+    "log": "logs/precommit-pytest.log"
+  },
+  "smoke": {
+    "generation_conditions": 22,
+    "expected_rejections": 7,
+    "checks": {
+      "22_generation_conditions_completed": true,
+      "no_fallback_nan_oom_in_successful_afm_runs": true,
+      "preserve_mass_and_image_probability_within_1e_minus_5": true,
+      "extended_structural_step_block_branch_head_coverage": true,
+      "untouched_rows_preserved_in_measured_diagnostics": true,
+      "control_and_diag_auto_images_equal": true,
+      "7_expected_rejections": true,
+      "baseline_recovers_after_rejections": true
+    },
+    "image_comparisons": [
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "off-seed-20260930",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "zero-original-seed-20260930",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "discover-smoke-seed-20260930",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "observe-smoke-seed-20260930",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "attention-baseline-seed-20260930",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "baseline-repeat-after-edits",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "manual-zero-seed-20260930",
+        "pixel_equal": false,
+        "max_abs": 117,
+        "mean_abs": 1.577990214029948
+      },
+      {
+        "first": "baseline-smoke-seed-20260930",
+        "second": "augmented-zero-seed-20260930",
+        "pixel_equal": false,
+        "max_abs": 135,
+        "mean_abs": 1.4096832275390625
+      },
+      {
+        "first": "multi-preserve",
+        "second": "multi-preserve-diag-off",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      },
+      {
+        "first": "multi-preserve",
+        "second": "multi-preserve-auto",
+        "pixel_equal": true,
+        "max_abs": 0,
+        "mean_abs": 0
+      }
+    ],
+    "runs": [
+      {
+        "id": "baseline-smoke-seed-20260930",
+        "status": "completed",
+        "prompt_id": "3cc93096-cd3c-40a1-a04c-127e7153c3ef",
+        "cached_nodes": [
+          "3",
+          "5",
+          "6",
+          "8",
+          "10",
+          "11",
+          "12",
+          "13",
+          "29"
+        ],
+        "execution_errors": [],
+        "log_status": "expected_no_hook",
+        "prompt": "prompts/smoke/baseline-smoke-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "ae6002e210519a39cb444dd2b8ee4de3d3a5fcae89f699fabaedbd2f4028abec"
+        }
+      },
+      {
+        "id": "off-seed-20260930",
+        "status": "completed",
+        "prompt_id": "90d81c63-50bb-4153-ac33-4f65811b81d4",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "log_status": "expected_no_hook",
+        "prompt": "prompts/smoke/off-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "d2d28388facff2a8bf3a1c0ee0cbde28b9ea25b22e492969216f722acc7aaed6"
+        }
+      },
+      {
+        "id": "zero-original-seed-20260930",
+        "status": "completed",
+        "prompt_id": "88f44ee5-6a06-4b19-93ff-eced21137a34",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "log_status": "expected_no_hook",
+        "prompt": "prompts/smoke/zero-original-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "020cabfbaea5ff4575b7136658322e8ac18ead200d5c28ec5f8d00b2db01afb3"
+        }
+      },
+      {
+        "id": "discover-smoke-seed-20260930",
+        "status": "completed",
+        "prompt_id": "e1fbe5ea-cecc-4b40-809e-7bea181eeb8d",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "34850f82ac9346438487320b0633f0d2",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 0,
+          "reasons": {},
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 3.7699160000047414,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": false
+        },
+        "spectral_count": 0,
+        "physical_heads": [],
+        "blocks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "diagnostic_blocks": [],
+        "steps": [],
+        "implementations": [
+          "original"
+        ],
+        "reasons": {},
+        "text_mass_range": null,
+        "text_mass_max_abs_delta": null,
+        "image_probability_max_abs_delta": null,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/discover-smoke-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "cef110ab10b4abfc5c87898786f1e38046c6b59bf7ae9e1a2d0d0b3d816d96a6"
+        }
+      },
+      {
+        "id": "observe-smoke-seed-20260930",
+        "status": "completed",
+        "prompt_id": "72ea05d8-c716-4567-bde8-2bf345c12092",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "21ec918bf1d24daca04b4172a10d6396",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 32,
+          "edited_calls": 0,
+          "reasons": {
+            "target_skipped": 192
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 3.514878200003295,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": false
+        },
+        "spectral_count": 0,
+        "physical_heads": [],
+        "blocks": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "diagnostic_blocks": [],
+        "steps": [],
+        "implementations": [
+          "original"
+        ],
+        "reasons": {
+          "target_skipped": 192
+        },
+        "text_mass_range": null,
+        "text_mass_max_abs_delta": null,
+        "image_probability_max_abs_delta": null,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/observe-smoke-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "d209c9551eba3bd80f05e2f8a1f0eb0e07999198bea2f4b06c7186f46883e8f5"
+        }
+      },
+      {
+        "id": "manual-zero-seed-20260930",
+        "status": "completed",
+        "prompt_id": "20e1d782-fee5-40f0-8af0-ae5ff6373a39",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "cdb2c81f9e6f4a0ebd31404457756bb4",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 8,
+          "reasons": {
+            "zero_control": 8,
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 12.90436729999783,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "zero_control": 8,
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 8,
+        "comparison_max_rel_l2": 0.0036757658487402453,
+        "comparison_max_scaled_abs": 0.010541027988303552,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/manual-zero-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "95db4f8278ec1f0527f22604779a539cae23ef9c204da37c805e5aa291a92372",
+          "original_png_sha256": "4fb830b617f30d08e83857a442ae5b7aa1cdf3bcb6e479cd07f639c6c6b24772"
+        }
+      },
+      {
+        "id": "augmented-zero-seed-20260930",
+        "status": "completed",
+        "prompt_id": "4f54a172-aab7-4d6d-89db-317686d1d647",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "b7aa7e14b039437ab2db0afe8112bea1",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 8,
+          "reasons": {
+            "zero_control": 8,
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 4.96899090000079,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "augmented"
+        ],
+        "reasons": {
+          "zero_control": 8,
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 8,
+        "comparison_max_rel_l2": 0.0037427393648713655,
+        "comparison_max_scaled_abs": 0.010174383354432704,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/augmented-zero-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "b7ca16959fd79e0f9c357ad85e22c04d6deca3e99745d479e81235f8d72de9ac",
+          "original_png_sha256": "e4d3f28af8e7d9a3abb39c712783f9dc3da027ed068d461fa498e1fb954edeb4"
+        }
+      },
+      {
+        "id": "manual-edit-005-seed-20260930",
+        "status": "completed",
+        "prompt_id": "0f450324-5479-400e-9ebe-91fae0683cfe",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "78e99059be264da081d3a0bc0da7b1e3",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 8,
+          "reasons": {
+            "explicit_manual": 8,
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 4.95685489999596,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 8,
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 8,
+        "comparison_max_rel_l2": 0.003651598064179177,
+        "comparison_max_scaled_abs": 0.00972125751973743,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/manual-edit-005-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "ef155f8f6107e9883fce99635a722c7a9644d481b78de6ea7817e7897cc62a27",
+          "original_png_sha256": "3db3d69838ebbc4da79fe8a3e9be5edc973c6a993c927b2710cfcb4a48ed2d9a"
+        }
+      },
+      {
+        "id": "augmented-edit-005-seed-20260930",
+        "status": "completed",
+        "prompt_id": "2e379d77-c94b-4210-90b2-43381ff1a10e",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "f4aa48d8c27d43789a1cf62c04fcc684",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 8,
+          "reasons": {
+            "explicit_augmented": 8,
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 4.7707032000034815,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "augmented"
+        ],
+        "reasons": {
+          "explicit_augmented": 8,
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 8,
+        "comparison_max_rel_l2": 0.0033137008381000825,
+        "comparison_max_scaled_abs": 0.008536139412415805,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/augmented-edit-005-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "cdc9a514ef0e23be4653d4ad970aaffed6b2114b31e96cbb4bd272e401c4d90d",
+          "original_png_sha256": "de48a43730d00f8b0815174026f3b68fdf1eaae2652034ba012d14f253e1a678"
+        }
+      },
+      {
+        "id": "attention-baseline-seed-20260930",
+        "status": "completed",
+        "prompt_id": "7aa0e4d6-fc3b-4712-a80e-9f6a18421674",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "48de0b61394649b598f8f3298d02ee67",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 0,
+          "reasons": {
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 3.779175000003306,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "original"
+        ],
+        "reasons": {
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/attention-baseline-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "b4e7ac13e0617c896cac4a435ad7c921d25a2d95a1238010568a7665c318c393"
+        }
+      },
+      {
+        "id": "joint-manual-005-seed-20260930",
+        "status": "completed",
+        "prompt_id": "31203a7e-5549-4870-9703-bd4e3db77e63",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "2ed153ff489f495487612a3c90464747",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 8,
+          "reasons": {
+            "explicit_manual": 8,
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 4.573368700002902,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 8,
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/joint-manual-005-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "ef155f8f6107e9883fce99635a722c7a9644d481b78de6ea7817e7897cc62a27",
+          "original_png_sha256": "6773d5d63fc1ed957813b2faba7b818c1ebfa3dd98a40fc342e09f13a67436cd"
+        }
+      },
+      {
+        "id": "preserve-manual-005-seed-20260930",
+        "status": "completed",
+        "prompt_id": "14e2d19f-627b-44b2-86e3-df770ede1f90",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "1362484ee1a64e65af75bff633b6cda4",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 8,
+          "edited_calls": 8,
+          "reasons": {
+            "explicit_manual": 8,
+            "target_skipped": 216
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 4.676368000000366,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 8,
+        "physical_heads": [
+          0
+        ],
+        "blocks": [
+          0
+        ],
+        "diagnostic_blocks": [
+          0
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 8,
+          "target_skipped": 216
+        },
+        "text_mass_range": [
+          0,
+          0
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/preserve-manual-005-seed-20260930.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "b2a2bff0f8e1ae08673832e58006966653050424b76ef7261a9bf1a1355b981c",
+          "original_png_sha256": "669a803c58ca07e605c60f00a4000980b47bd65907d9147add27a306d03e412d"
+        }
+      },
+      {
+        "id": "baseline-repeat-after-edits",
+        "status": "completed",
+        "prompt_id": "c610d5c0-9ae4-4619-853c-8bd2dd5b50fe",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "log_status": "expected_no_hook",
+        "prompt": "prompts/smoke/baseline-repeat-after-edits.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "ae6002e210519a39cb444dd2b8ee4de3d3a5fcae89f699fabaedbd2f4028abec"
+        }
+      },
+      {
+        "id": "multi-observe",
+        "status": "completed",
+        "prompt_id": "c593ddfb-a94b-4f3d-8ee7-ffddf4db776b",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "c862d7317428452a8e093243c626ef71",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 0,
+          "reasons": {
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 4.4474726999906125,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "original"
+        ],
+        "reasons": {
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9918650761246681
+        ],
+        "text_mass_max_abs_delta": 0,
+        "image_probability_max_abs_delta": 0,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 8,
+        "prompt": "prompts/smoke/multi-observe.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e15f317fb086e5095d9d7baa4dab0e79e6fb6d233895836682ca4e446b98786c",
+          "original_png_sha256": "077495311afd99c9a615551515c2e9400745e5b36640e5360da7e61e53b46750"
+        }
+      },
+      {
+        "id": "multi-joint",
+        "status": "completed",
+        "prompt_id": "2ef8b2ce-0c2c-4599-934c-23dd0306c9d0",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "c3efdba3dca040e182e0bb4e3ef093ec",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 8.30551390000619,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9919402673840523
+        ],
+        "text_mass_max_abs_delta": 0.9833790063858032,
+        "image_probability_max_abs_delta": 0.7776204943656921,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 8,
+        "prompt": "prompts/smoke/multi-joint.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "a05045a3bd02226a641a4efb3173963c81c294933e3df154613987e315b0d9aa",
+          "original_png_sha256": "9f6752426ac7ad124ddedfc88fe5331d9110d55da6a092645d90f2e498360c84"
+        }
+      },
+      {
+        "id": "multi-preserve",
+        "status": "completed",
+        "prompt_id": "a6933113-ec75-440e-92e1-e26c33431418",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "036d128c7d7a487dbc809cae76a42852",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 8.642756900007953,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9920991882681847
+        ],
+        "text_mass_max_abs_delta": 7.748603820800781e-7,
+        "image_probability_max_abs_delta": 2.682209014892578e-7,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 8,
+        "prompt": "prompts/smoke/multi-preserve.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "c0cd4b03be0429e7b428d26d04d00cd47f22d508a8ca91ac4e02099bed103271",
+          "original_png_sha256": "55aaf8e3bc1819d75bf66f4ad1c9d0f625796784cd2ee182a2c06da69ebd62c4"
+        }
+      },
+      {
+        "id": "multi-preserve-auto",
+        "status": "completed",
+        "prompt_id": "02209a90-ed51-4edb-b3c6-3a0d71a8bd1e",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "fc6e5b7a91434af3b0d81e795f3de768",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "profile_not_qualified": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 8.629724499987788,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "profile_not_qualified": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9920991882681847
+        ],
+        "text_mass_max_abs_delta": 7.748603820800781e-7,
+        "image_probability_max_abs_delta": 2.682209014892578e-7,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 8,
+        "prompt": "prompts/smoke/multi-preserve-auto.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "c0cd4b03be0429e7b428d26d04d00cd47f22d508a8ca91ac4e02099bed103271",
+          "original_png_sha256": "576f29abd1860e27cb43a08b2a276a004b963cfbc047f551e351ce7aecffca3c"
+        }
+      },
+      {
+        "id": "multi-preserve-diag-off",
+        "status": "completed",
+        "prompt_id": "07d7f34a-236d-4667-8b72-fce98d017b9c",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "b8de87c24530451aad0bc871308b4b91",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 7.603434400007245,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": false
+        },
+        "spectral_count": 0,
+        "physical_heads": [],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [],
+        "steps": [],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": null,
+        "text_mass_max_abs_delta": null,
+        "image_probability_max_abs_delta": null,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "prompt": "prompts/smoke/multi-preserve-diag-off.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "c0cd4b03be0429e7b428d26d04d00cd47f22d508a8ca91ac4e02099bed103271",
+          "original_png_sha256": "d0103d54d4c0c307c8aed10115bc30e9c567013f0ec9b37a129dbb4aeab93863"
+        }
+      },
+      {
+        "id": "rectangle-preserve",
+        "status": "completed",
+        "prompt_id": "69ab6f10-34a1-4f36-8f87-19556d398ef3",
+        "cached_nodes": [
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "a00bad2a945f40718a6934923269422d",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 16.081409100006567,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9944128811359405
+        ],
+        "text_mass_max_abs_delta": 0.0000010132789611816406,
+        "image_probability_max_abs_delta": 4.172325134277344e-7,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 8,
+        "prompt": "prompts/smoke/rectangle-preserve.json",
+        "image": {
+          "shape": [
+            512,
+            640,
+            3
+          ],
+          "pixel_sha256": "f861d5069aaba222247b24f21d6cd8e9a7bfd8a711f6cb3bbca7e720cd8bb8de",
+          "original_png_sha256": "6ad7b61bcfb0e173a9e1b9cb7a026da42d962d14c39d061252f3838082f38c04"
+        }
+      },
+      {
+        "id": "cfg-positive",
+        "status": "completed",
+        "prompt_id": "022c2905-79ef-41db-b3d4-4ec2001f9fbf",
+        "cached_nodes": [
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "06f19cdf197a4d3eb07d7c5726d7f062",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 10.958899399993243,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9946588948369026
+        ],
+        "text_mass_max_abs_delta": 7.748603820800781e-7,
+        "image_probability_max_abs_delta": 3.5762786865234375e-7,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 8,
+        "prompt": "prompts/smoke/cfg-positive.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "e569e3e2c4747678f50adf466525c3c993d13ed36b8a8359f562a626408a3cd6",
+          "original_png_sha256": "0eeb2858d0172bdf4c596fc4206eab98991ad99f2931b5b7bb74945b07267eb5"
+        }
+      },
+      {
+        "id": "cfg-negative",
+        "status": "completed",
+        "prompt_id": "738f7ee9-7b1b-43be-ac7e-55c54674f78f",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "eb16d7024ac947e7b6bfc0bbbf54bf32",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 10.875343400010024,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 96,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.37789635360240936
+        ],
+        "text_mass_max_abs_delta": 4.76837158203125e-7,
+        "image_probability_max_abs_delta": 8.940696716308594e-8,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 96,
+        "prompt": "prompts/smoke/cfg-negative.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "35ebe10d69d19e6c264754f45b3e9f6fe3da02e16edcd78e68a23808df739803",
+          "original_png_sha256": "5fd990785ef5cb7ac11675bee86e90b64a237517458f2ead03fa17d5049a1327"
+        }
+      },
+      {
+        "id": "cfg-both",
+        "status": "completed",
+        "prompt_id": "a82b58a6-c68f-4039-9cda-f24bd3628b27",
+        "cached_nodes": [
+          "5",
+          "6",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "execution_errors": [],
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "0ac2fb5378364c579b1bc8025fb5afe6",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 24,
+          "edited_calls": 24,
+          "reasons": {
+            "explicit_manual": 24,
+            "target_skipped": 200
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 16.254843400005484,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "spectral_count": 192,
+        "physical_heads": [
+          0,
+          16,
+          32,
+          47
+        ],
+        "blocks": [
+          0,
+          14,
+          27
+        ],
+        "diagnostic_blocks": [
+          0,
+          14,
+          27
+        ],
+        "steps": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "manual"
+        ],
+        "reasons": {
+          "explicit_manual": 24,
+          "target_skipped": 200
+        },
+        "text_mass_range": [
+          0,
+          0.9940594285726547
+        ],
+        "text_mass_max_abs_delta": 9.5367431640625e-7,
+        "image_probability_max_abs_delta": 2.980232238769531e-7,
+        "finite": true,
+        "unselected_rows_preserved": true,
+        "comparison_count": 0,
+        "comparison_max_rel_l2": null,
+        "comparison_max_scaled_abs": null,
+        "effect_resolved_count": 0,
+        "structural_coverage_pass": true,
+        "centered_undefined_count": 104,
+        "prompt": "prompts/smoke/cfg-both.json",
+        "image": {
+          "shape": [
+            512,
+            512,
+            3
+          ],
+          "pixel_sha256": "d713b0c9a5f7786fbe7af630b798d352960f7fbc646254fd56fab8d703792f54",
+          "original_png_sha256": "24956777fb079d6fcba42e5b6b7f3211cc3d7659b6fffaf2b872086784be0d69"
+        }
+      }
+    ],
+    "expected_rejection_checks": [
+      {
+        "id": "preserve-augmented",
+        "prompt_id": "976e250d-ab47-4ec3-8a4b-aa07ecde9b1c",
+        "expected": "unsupported_normalization_implementation",
+        "expected_rejection": true,
+        "exception_type": "C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental.afm.runtime.AFMUnsupportedError",
+        "exception_message": "unsupported_normalization_implementation: preserve_text_mass is implemented only by the manual kernel\n"
+      },
+      {
+        "id": "preserve-compare",
+        "prompt_id": "94c192a7-cf8a-438e-9b3a-4c924317754f",
+        "expected": "unsupported_normalization_comparison",
+        "expected_rejection": true,
+        "exception_type": "C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental.afm.runtime.AFMUnsupportedError",
+        "exception_message": "unsupported_normalization_comparison: manual/augmented comparisons require joint normalization\n"
+      },
+      {
+        "id": "head-out-of-range",
+        "prompt_id": "e9bf1250-8ac5-4e63-adc7-dc1e94a8c04f",
+        "expected": "head",
+        "expected_rejection": true,
+        "exception_type": "ValueError",
+        "exception_message": "diagnostic_head_indices must be within 0..47\n"
+      },
+      {
+        "id": "EasyCache-before",
+        "prompt_id": "957599a5-bce1-4c5c-ba6a-2285b540e48d",
+        "expected": "unsupported_model_skip_cache",
+        "expected_rejection": true,
+        "exception_type": "C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental.afm.runtime.AFMUnsupportedError",
+        "exception_message": "unsupported_model_skip_cache: easycache\n"
+      },
+      {
+        "id": "EasyCache-after",
+        "prompt_id": "ccc1f97b-6efd-40fb-8064-ee1b2a8813c4",
+        "expected": "unsupported_model_skip_cache",
+        "expected_rejection": true,
+        "exception_type": "C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental.afm.runtime.AFMUnsupportedError",
+        "exception_message": "unsupported_model_skip_cache: easycache\n"
+      },
+      {
+        "id": "LazyCache-before",
+        "prompt_id": "4e6496a5-5d48-472f-837c-6fb944f0ba9d",
+        "expected": "unsupported_model_skip_cache",
+        "expected_rejection": true,
+        "exception_type": "C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental.afm.runtime.AFMUnsupportedError",
+        "exception_message": "unsupported_model_skip_cache: lazycache\n"
+      },
+      {
+        "id": "LazyCache-after",
+        "prompt_id": "b02fbae8-df6e-405a-8ae5-8bed14566e4f",
+        "expected": "unsupported_model_skip_cache",
+        "expected_rejection": true,
+        "exception_type": "C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental.afm.runtime.AFMUnsupportedError",
+        "exception_message": "unsupported_model_skip_cache: lazycache\n"
+      }
+    ],
+    "recovery_after_rejections": {
+      "prompt_id": "8ec59d86-c9d4-4c58-b723-43a59fd0b196",
+      "status": "success",
+      "completed": true
+    }
+  },
+  "portrait": {
+    "generation_conditions": 26,
+    "subjects": [
+      {
+        "id": "portrait",
+        "seed": 20261015,
+        "width": 512,
+        "height": 640,
+        "label": "顔・髪・服の質感",
+        "prompt": "A realistic photographic portrait of a 30-year-old Japanese woman, head and shoulders, facing the camera, warm brown eyes with clear catchlights, shoulder-length wavy dark brown hair with loose strands, natural skin texture and a few light freckles, a relaxed gentle smile, small blue enamel earrings, wearing a cream cable-knit sweater. Soft natural window light from the left, a softly blurred green garden in the background, realistic colors, unretouched photography. The face fills a large part of the frame."
+      },
+      {
+        "id": "hands",
+        "seed": 20261016,
+        "width": 512,
+        "height": 768,
+        "label": "人物・手・持ち物・服",
+        "prompt": "A realistic photographic waist-up portrait of a 35-year-old Japanese man seated at a wooden cafe table, short slightly wavy black hair, warm brown eyes, natural skin texture, looking at the camera with a relaxed expression. Wearing a textured navy blue cardigan over a light gray shirt. His right hand holds the handle of a red ceramic mug on the table, and his left hand rests flat on the table with relaxed fingers. Both hands are fully visible. Soft natural window light from the left, a softly blurred cafe interior, realistic colors, candid editorial photography."
+      }
+    ],
+    "strengths": [
+      0,
+      0.05,
+      0.2,
+      0.5,
+      1,
+      2
+    ],
+    "implementation": "manual",
+    "blocks": "all (0-27)",
+    "cfg": 1,
+    "steps": 8,
+    "sampling": "euler/simple",
+    "checks": {
+      "images": 26,
+      "pairs": 20,
+      "failures": [],
+      "completed": true,
+      "all_edited_calls_224": true,
+      "no_fallback_nan_oom": true,
+      "original_sha256_all_match": true,
+      "links_checked": 109,
+      "pairs_match_except_strength_and_log_destination": true,
+      "interaction_logic": "PASS in isolated DOM harness; browser unavailable in this session",
+      "contact_sheets": "visually inspected; fixed crops preserve aspect ratio",
+      "subject_count": 2,
+      "strengths": [
+        0,
+        0.05,
+        0.2,
+        0.5,
+        1,
+        2
+      ]
+    },
+    "runs": [
+      {
+        "id": "portrait-baseline",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": null,
+        "normalization": "original",
+        "status": "completed",
+        "prompt_id": "f61f3b0d-5f48-4487-a537-a1d4f8898d09",
+        "prompt": "prompts/portrait/portrait-baseline.json",
+        "original_png_sha256": "3a18d2cd143ccd39f3095ddeb830191fa5fc63bb9ed0933a81f26b180eefdb5c",
+        "head_chunk_size": null,
+        "query_chunk_size": null,
+        "summary": null,
+        "measured": null
+      },
+      {
+        "id": "portrait-joint-0",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "fa313e1b-65ab-407b-8be5-2ef9e7ef84aa",
+        "prompt": "prompts/portrait/portrait-joint-0.json",
+        "original_png_sha256": "6957222398065926c6cd7b610459b50b508a7b94b5b82ca8aee18cff3d7d2600",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "9ee0dedc30a94f6780ec85d757bd83cd",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "zero_control": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 43.27211839999654,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 9.238719940185547e-7,
+          "image_probability_max_abs_delta": 3.129243850708008e-7
+        }
+      },
+      {
+        "id": "portrait-joint-0p05",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0.05,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "0e08e1ec-52a4-41ce-9838-69530fffb218",
+        "prompt": "prompts/portrait/portrait-joint-0p05.json",
+        "original_png_sha256": "81004e1fe59f0dd052173eb063c18dc3b76eeaff0f2079670fda7a27c9a0029a",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "80119e5e076843e4ac405698bf1da2f0",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 43.11926130000211,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.13262313604354858,
+          "image_probability_max_abs_delta": 0.08396679162979126
+        }
+      },
+      {
+        "id": "portrait-joint-0p2",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0.2,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "38418f09-7724-4718-99f0-09d42804521e",
+        "prompt": "prompts/portrait/portrait-joint-0p2.json",
+        "original_png_sha256": "7b5e69338766001d366b2bb15d5f5a3a1dada55e70e2e575b1dcace64bf562a6",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "efc0eaec1846495489734449d0ca3256",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 43.2251447999879,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.48387616872787476,
+          "image_probability_max_abs_delta": 0.19512876868247986
+        }
+      },
+      {
+        "id": "portrait-joint-0p5",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0.5,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "4633a6f7-9f0f-40fe-a2e8-b4de2bf36501",
+        "prompt": "prompts/portrait/portrait-joint-0p5.json",
+        "original_png_sha256": "2f715e8791bf1da160fdf44617561f33efced13926127be45fba6faae4a3f10c",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "de7bf26d025b4c8e9b2070001c78b7f9",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 43.159278999999515,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.9133773446083069,
+          "image_probability_max_abs_delta": 0.4667011797428131
+        }
+      },
+      {
+        "id": "portrait-joint-1",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 1,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "aaa25254-a28b-403e-9e9d-850477ca6536",
+        "prompt": "prompts/portrait/portrait-joint-1.json",
+        "original_png_sha256": "a7371ada1832ddb86ead4231a516391c4ffb9b9843dbeebdb8e90e5fba84e79a",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "d4fcfdf1a0334d63991e6175a57a3507",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 42.80929180000385,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.9832339286804199,
+          "image_probability_max_abs_delta": 0.7228727340698242
+        }
+      },
+      {
+        "id": "portrait-joint-2",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 2,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "25164a12-c354-48e1-90b1-7e32c1b2e6f3",
+        "prompt": "prompts/portrait/portrait-joint-2.json",
+        "original_png_sha256": "52ea4f2802b7f269caf4f8542275cd42b734d3dc552c8bbaa515c63d1eaadee5",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "0f36bf184f3a4cc495fa3484fb0250d9",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 42.990031599998474,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.9977306723594666,
+          "image_probability_max_abs_delta": 0.7735380530357361
+        }
+      },
+      {
+        "id": "portrait-preserve_text_mass-0",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "d04391a0-50ef-4145-99b0-39efabdb2dd7",
+        "prompt": "prompts/portrait/portrait-preserve_text_mass-0.json",
+        "original_png_sha256": "38b902c961b55275140d6ab114467a007f77028dfdb0cc52d338d608cda5d0e2",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "43016557c08f4990b1c273b481904145",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "zero_control": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 47.18546300000162,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.960464477539062e-7,
+          "image_probability_max_abs_delta": 1.4901161193847656e-7
+        }
+      },
+      {
+        "id": "portrait-preserve_text_mass-0p05",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0.05,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "ea18256f-c5d3-45fe-9a7a-c30579861403",
+        "prompt": "prompts/portrait/portrait-preserve_text_mass-0p05.json",
+        "original_png_sha256": "75fd6940ba31262908fa9081a5cfe2c455b39c8567a3919f3b9353dc63bee6ec",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "f1b64e4d510845c98fca30188232b4de",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 46.69392410000728,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.960464477539062e-7,
+          "image_probability_max_abs_delta": 1.4901161193847656e-7
+        }
+      },
+      {
+        "id": "portrait-preserve_text_mass-0p2",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0.2,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "216e5c94-90f3-4576-a91b-d0399d80a033",
+        "prompt": "prompts/portrait/portrait-preserve_text_mass-0p2.json",
+        "original_png_sha256": "35bb24919c66716e23ef2cf2b157024bac24c77b0252db95f5ebecf3ecd46ea8",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "6a24fecf56be4c57843890b666dee0d9",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 46.94169809999585,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.960464477539062e-7,
+          "image_probability_max_abs_delta": 1.7881393432617188e-7
+        }
+      },
+      {
+        "id": "portrait-preserve_text_mass-0p5",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 0.5,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "26ae0c51-7376-4598-8203-b1242f2183d8",
+        "prompt": "prompts/portrait/portrait-preserve_text_mass-0p5.json",
+        "original_png_sha256": "55f41209d74993793d1ac7828bc515bafb1085e360479442d0c62782e0832e12",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "f1a9dd2399fb49dfb56cd2d9b2a54251",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 48.50385530000494,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.960464477539062e-7,
+          "image_probability_max_abs_delta": 1.7881393432617188e-7
+        }
+      },
+      {
+        "id": "portrait-preserve_text_mass-1",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 1,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "7290560e-7750-4a92-93ba-12319a3bcb98",
+        "prompt": "prompts/portrait/portrait-preserve_text_mass-1.json",
+        "original_png_sha256": "9fb0b9845afe33f0107cc83198096b3495f41b50d2e1615da9f5971cf76b99e7",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "381cfb02ee96463498d6b111d6866a95",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 47.903984300006414,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.364418029785156e-7,
+          "image_probability_max_abs_delta": 2.384185791015625e-7
+        }
+      },
+      {
+        "id": "portrait-preserve_text_mass-2",
+        "subject": "portrait",
+        "width": 512,
+        "height": 640,
+        "seed": 20261015,
+        "strength": 2,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "359f2756-e85a-48f5-84c6-a958e17aeab0",
+        "prompt": "prompts/portrait/portrait-preserve_text_mass-2.json",
+        "original_png_sha256": "134826dc92faf31fc1919f5e73ce98ed6edf8f2c7488d0a55c93abfcc9ffeba1",
+        "head_chunk_size": 2,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "88f6a39bad9245d990b4d4aaaca1e2ca",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 47.33991920000699,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.960464477539062e-7,
+          "image_probability_max_abs_delta": 3.2782554626464844e-7
+        }
+      },
+      {
+        "id": "hands-baseline",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": null,
+        "normalization": "original",
+        "status": "completed",
+        "prompt_id": "75207609-310d-4435-af04-e87225ff62c1",
+        "prompt": "prompts/portrait/hands-baseline.json",
+        "original_png_sha256": "e6ba25815f9f477122cbef14fb9604e40a31150abe96726c1b71341a8906865d",
+        "head_chunk_size": null,
+        "query_chunk_size": null,
+        "summary": null,
+        "measured": null
+      },
+      {
+        "id": "hands-joint-0",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "3ba94c7e-1c2d-4bcc-ab7b-126423163d27",
+        "prompt": "prompts/portrait/hands-joint-0.json",
+        "original_png_sha256": "170e13cc46edb257f3cc3d48a7f2b3efbd9ff428d8f0969f35ede97e3e8fc107",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "fa003fe9e541415f83f2fc0c7a7ac004",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "zero_control": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 20.47091069999442,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.0000010132789611816406,
+          "image_probability_max_abs_delta": 3.5762786865234375e-7
+        }
+      },
+      {
+        "id": "hands-joint-0p05",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0.05,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "5319188b-898c-4651-9381-99b01dd7d320",
+        "prompt": "prompts/portrait/hands-joint-0p05.json",
+        "original_png_sha256": "a0dc42efa3283a350bf4853a165eb6646c28d11d06c3ff32674d12a8b0576ebf",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "0fd83544598b4a28907dac4958703a30",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 18.03067469999951,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.12718141078948975,
+          "image_probability_max_abs_delta": 0.061803191900253296
+        }
+      },
+      {
+        "id": "hands-joint-0p2",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0.2,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "b0781102-e141-494e-8e47-695c2e493592",
+        "prompt": "prompts/portrait/hands-joint-0p2.json",
+        "original_png_sha256": "4663655ecdaa69c8ce2d1d96b10aaa2905d721ca6224a0126c6eb00754a51961",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "b9daf333e16b41b5b5802b1e7c25c98e",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 17.780223099995055,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.5006043910980225,
+          "image_probability_max_abs_delta": 0.2610214650630951
+        }
+      },
+      {
+        "id": "hands-joint-0p5",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0.5,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "b77e670b-8668-4a49-b43d-9b1a15ab3b4f",
+        "prompt": "prompts/portrait/hands-joint-0p5.json",
+        "original_png_sha256": "3436491a6b56a3614deb38330618c5cb08f9c71a29770e3c52724cf9b5d7c8d3",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "1813c06744004cf1881b2b349fd726fc",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 17.75935870000103,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.8881019949913025,
+          "image_probability_max_abs_delta": 0.5281352996826172
+        }
+      },
+      {
+        "id": "hands-joint-1",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 1,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "0d4269d1-d393-42d5-adf4-1ed32c1e82c0",
+        "prompt": "prompts/portrait/hands-joint-1.json",
+        "original_png_sha256": "0297cbcfdae0c17e486e65448fb94708037557d6229301b67b6a01c546652fad",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "427a6b4a1026407290822bb7ec14ef0f",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 17.936340299987933,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.9706029295921326,
+          "image_probability_max_abs_delta": 0.7247417569160461
+        }
+      },
+      {
+        "id": "hands-joint-2",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 2,
+        "normalization": "joint",
+        "status": "completed",
+        "prompt_id": "1fd76f2e-95f1-4217-9f9f-2253a88b5133",
+        "prompt": "prompts/portrait/hands-joint-2.json",
+        "original_png_sha256": "436cd446a57a5a3a7c8b02b2204c088b9919567e2ccc720d58b045bbcd0546cc",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "7523086d2f7e4ed6a9b2ed559883cc0b",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 18.0986733000027,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 0.9976966977119446,
+          "image_probability_max_abs_delta": 0.6863695979118347
+        }
+      },
+      {
+        "id": "hands-preserve_text_mass-0",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "d92918ac-c3c9-4316-80de-6576d020c797",
+        "prompt": "prompts/portrait/hands-preserve_text_mass-0.json",
+        "original_png_sha256": "cc82605da0f156b137586de7610a1404e66e3912532675ea01edac9246b687e0",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "99cf14af3a67429f8c032a27d8407235",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "zero_control": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 19.35945429999265,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 4.76837158203125e-7,
+          "image_probability_max_abs_delta": 2.384185791015625e-7
+        }
+      },
+      {
+        "id": "hands-preserve_text_mass-0p05",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0.05,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "ac306e6f-bbe0-47bd-982f-6b4fdd555b25",
+        "prompt": "prompts/portrait/hands-preserve_text_mass-0p05.json",
+        "original_png_sha256": "2e0b9ccf51403aea9d4a2831290767fae0fd4b1d26a8f863a8f5f0e543e45feb",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "172ecc92b3df4f92a194735541f6a8ec",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 19.239520799994352,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 5.960464477539062e-7,
+          "image_probability_max_abs_delta": 2.980232238769531e-7
+        }
+      },
+      {
+        "id": "hands-preserve_text_mass-0p2",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0.2,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "69e5126c-302e-418b-b0ff-613b6e25be40",
+        "prompt": "prompts/portrait/hands-preserve_text_mass-0p2.json",
+        "original_png_sha256": "60610420f8083956427e364500f94fcaf18436f6822a53523d293075642dd58e",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "8aa062d4243741888a0490cc0625139e",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 19.72326920001069,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 6.556510925292969e-7,
+          "image_probability_max_abs_delta": 2.682209014892578e-7
+        }
+      },
+      {
+        "id": "hands-preserve_text_mass-0p5",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 0.5,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "6f97b1f0-93fe-4b19-b708-a06088639d05",
+        "prompt": "prompts/portrait/hands-preserve_text_mass-0p5.json",
+        "original_png_sha256": "6020e68843864beba0dbd173a294126ef9dc89fe32827fe89dc2845ec1a858e4",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "e85258376c1049409f1f0e1c540fc115",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 19.426659899996594,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 8.344650268554688e-7,
+          "image_probability_max_abs_delta": 2.384185791015625e-7
+        }
+      },
+      {
+        "id": "hands-preserve_text_mass-1",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 1,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "e7b1c069-8843-45b7-b857-94355c08174c",
+        "prompt": "prompts/portrait/hands-preserve_text_mass-1.json",
+        "original_png_sha256": "be11f2f8a42f708525c1128c956124a7c4e54f04b4eb01c36968b4deef450d36",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "bb2b553a54084af1af2f7017e9373ebe",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 19.480313400010346,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 7.748603820800781e-7,
+          "image_probability_max_abs_delta": 2.384185791015625e-7
+        }
+      },
+      {
+        "id": "hands-preserve_text_mass-2",
+        "subject": "hands",
+        "width": 512,
+        "height": 768,
+        "seed": 20261016,
+        "strength": 2,
+        "normalization": "preserve_text_mass",
+        "status": "completed",
+        "prompt_id": "bc5fb193-e9f5-4bc9-bca9-d63fdaef4cf9",
+        "prompt": "prompts/portrait/hands-preserve_text_mass-2.json",
+        "original_png_sha256": "c8b760a4dfc49a7fef61f9bebb7478442bb02bed6568e980c24b00a9a734b746",
+        "head_chunk_size": 8,
+        "query_chunk_size": 128,
+        "summary": {
+          "schema_version": 5,
+          "model_family": "krea2",
+          "run_id": "f8da2cc8f2ae4a4e822ff12280c3c0bc",
+          "event": "run_summary",
+          "status": "ok",
+          "error_type": null,
+          "model_evaluations": 8,
+          "attention_calls": 224,
+          "observed_calls": 224,
+          "edited_calls": 224,
+          "reasons": {
+            "explicit_manual": 224
+          },
+          "fallback_calls": 0,
+          "nan_events": 0,
+          "oom_events": 0,
+          "wall_seconds": 19.467525899992324,
+          "timing_scope": "outer_sample_unsynchronized",
+          "peak_allocated_bytes": null,
+          "peak_reserved_bytes": null,
+          "memory_measurement": "not_measured",
+          "measurement_error": null,
+          "measurement_source": "server",
+          "cuda_synchronized": false,
+          "edit_seconds": null,
+          "diagnostics_enabled": true
+        },
+        "measured": {
+          "spectral_count": 4,
+          "text_mass_max_abs_delta": 6.556510925292969e-7,
+          "image_probability_max_abs_delta": 2.384185791015625e-7
+        }
+      }
+    ]
+  },
+  "qualification": {
+    "overall_regression_gate": "failed",
+    "independent_review": "unavailable",
+    "image_quality": "exploratory user observation only",
+    "performance": "not_measured",
+    "profiles_added": 0,
+    "defaults_changed": false
+  },
+  "artifact_policy": {
+    "committed": "result summary, exact submitted API prompts, regression logs, five representative comparison PNGs, user observation",
+    "local_only": [
+      "outputs/validation-20261015",
+      "outputs/portrait-evaluation-20261015"
+    ],
+    "local_contents": "all original PNGs, full JSONL/history, HTML evaluation pages, remaining sheets and absolute-difference images"
+  }
+}

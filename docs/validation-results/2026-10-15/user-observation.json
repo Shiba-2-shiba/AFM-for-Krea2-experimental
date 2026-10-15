@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "source": "user qualitative observation in this conversation",
+  "scope": "2 person prompts, one seed per prompt; manual, all 28 blocks, same-kernel zero controls",
+  "observation_ja": "観察結果は総注意保存の方が良い印象で、その場合は強度は２ぐらいは必要な印象。従来方式だと構図が代わり、強度２だと崩れが発生している。",
+  "preferred_candidate": {
+    "normalization_mode": "preserve_text_mass",
+    "implementation": "manual",
+    "strength": 2,
+    "block_scope": "all"
+  },
+  "interpretation": "Exploratory candidate for further validation; no default change or general image-quality claim.",
+  "next_validation_proposal": {
+    "strengths": [
+      1,
+      1.5,
+      2
+    ],
+    "multiple_seeds": true,
+    "status": "not_run"
+  },
+  "numeric_scores": null
+}

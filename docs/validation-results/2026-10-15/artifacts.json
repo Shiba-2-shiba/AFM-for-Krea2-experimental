@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "hash_scope": "raw bytes; text uses LF pinned by .gitattributes; copied logs trim trailing whitespace; artifacts.json excludes its own hash",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 89,
+      "sha256": "9ffce2c45fc846315e904bef6ae438e4520e5d8ff6d60b0aaf745525282830a1"
+    },
+    {
+      "path": "comparisons/hands-crops.png",
+      "bytes": 1605694,
+      "sha256": "098a8603d180556b20f3e56c483d09cfcd854db604d15b22cba250d783f20bfe"
+    },
+    {
+      "path": "comparisons/hands-strength-comparison.png",
+      "bytes": 3196737,
+      "sha256": "43b235bcfb63ebcdce5f8084bae0ce21a8cd7813276e378775d15cbb116e68c5"
+    },
+    {
+      "path": "comparisons/portrait-face-crops.png",
+      "bytes": 1745080,
+      "sha256": "c07afdb1722dd79fd696785e2c9ff64119ff9d7e6c36784de68734acfa3b2db2"
+    },
+    {
+      "path": "comparisons/portrait-strength-comparison.png",
+      "bytes": 3146034,
+      "sha256": "5d1c1b72f1767e3f1feb125713fca01a4ae4d3d76451a4255c256d44573db079"
+    },
+    {
+      "path": "comparisons/smoke-controls.png",
+      "bytes": 2184055,
+      "sha256": "762d1051d6160ae1acaf0a4ef50af60a1c67b93e3de7cb37ad4f752aca5b469b"
+    },
+    {
+      "path": "logs/initial-comfy-pytest.log",
+      "bytes": 13323,
+      "sha256": "b5dbc92a95201928997cd6db8cbe21a00a9dc63887052c49f38f6117b06595c3"
+    },
+    {
+      "path": "logs/initial-python-pytest.log",
+      "bytes": 13311,
+      "sha256": "296bbec1244b9300a866868a371e14bc50d3a1218c3d0d0d753642beb3e554bc"
+    },
+    {
+      "path": "logs/precommit-pytest.log",
+      "bytes": 13331,
+      "sha256": "dc28d316239adb59a67f4940aa7c0eedfa19fcf5f43e0897e1002ace84f3c49d"
+    },
+    {
+      "path": "prompts/portrait/hands-baseline.json",
+      "bytes": 2204,
+      "sha256": "d93bef24a9db79bd6cc1b9684d874c4b5865d1ff6e14ae5197f9bf77d91ac5ea"
+    },
+    {
+      "path": "prompts/portrait/hands-joint-0.json",
+      "bytes": 3344,
+      "sha256": "85bb4fd0eca8ea16d95bf923b435a7085e0b3f83b9397d2eedd910aa7144ef58"
+    },
+    {
+      "path": "prompts/portrait/hands-joint-0p05.json",
+      "bytes": 3353,
+      "sha256": "438c045a30995bd39288e88c06ec7cc862ab4b8c42f50125e787d957a26d18a4"
+    },
+    {
+      "path": "prompts/portrait/hands-joint-0p2.json",
+      "bytes": 3350,
+      "sha256": "060bf396047737f41124b5525471c5d8af04078d7629d57035f00e0b8945cd4f"
+    },
+    {
+      "path": "prompts/portrait/hands-joint-0p5.json",
+      "bytes": 3350,
+      "sha256": "c956a11d01f5b8a0e120b27222390b0179a246483556e3cb26c8ea91b2a4c2b0"
+    },
+    {
+      "path": "prompts/portrait/hands-joint-1.json",
+      "bytes": 3344,
+      "sha256": "b1aeab21d884bc8cb5148bb8503e39c48fdcb6e4da4cd4b75e08af9799337810"
+    },
+    {
+      "path": "prompts/portrait/hands-joint-2.json",
+      "bytes": 3344,
+      "sha256": "7b1e697cba044f9e600908e861c9a612ec97c48686de240354dfd6a355b765b5"
+    },
+    {
+      "path": "prompts/portrait/hands-preserve_text_mass-0.json",
+      "bytes": 3383,
+      "sha256": "d06034f980c0a90232ad62631f52b47e0d39d8618bf5fdf6c9bb6441369136d3"
+    },
+    {
+      "path": "prompts/portrait/hands-preserve_text_mass-0p05.json",
+      "bytes": 3392,
+      "sha256": "835bee768d3fd0e8a994c8653366c3a08b7bca507adc49b9f29e8299b50e0282"
+    },
+    {
+      "path": "prompts/portrait/hands-preserve_text_mass-0p2.json",
+      "bytes": 3389,
+      "sha256": "843f515ad809f1091425c43b8f5d781b294161ef339de15de200a1c5ffd2fcaf"
+    },
+    {
+      "path": "prompts/portrait/hands-preserve_text_mass-0p5.json",
+      "bytes": 3389,
+      "sha256": "81af6ee81283dad69fb61659ca92e017b446932c280593bb8e3d4f2fbbca697b"
+    },
+    {
+      "path": "prompts/portrait/hands-preserve_text_mass-1.json",
+      "bytes": 3383,
+      "sha256": "c8f5c632957687bab175e9de588d77081e7f37a8f077510afb704b0de6f0fc09"
+    },
+    {
+      "path": "prompts/portrait/hands-preserve_text_mass-2.json",
+      "bytes": 3383,
+      "sha256": "a2f3a4d0b7c8845dd120dbd559b562bdd012da015efc9ff8527c04b116394380"
+    },
+    {
+      "path": "prompts/portrait/portrait-baseline.json",
+      "bytes": 2151,
+      "sha256": "c76beacef180d7702d4aa2410c1f063400a2788135c5deeddb54e1573f0895ee"
+    },
+    {
+      "path": "prompts/portrait/portrait-joint-0.json",
+      "bytes": 3294,
+      "sha256": "d5486cc0f15bfa4e3aa28ffd89b719c58e916a9a5c5ee61b05275280750385d4"
+    },
+    {
+      "path": "prompts/portrait/portrait-joint-0p05.json",
+      "bytes": 3303,
+      "sha256": "dfde07cadc2b31ccaf6fee4b2f2d7b4bb7b93c4567924d1c2c130c7c12b03e02"
+    },
+    {
+      "path": "prompts/portrait/portrait-joint-0p2.json",
+      "bytes": 3300,
+      "sha256": "41c4b6f329803b37f709e8e25f7c08f8aa242faadea3628cb4aa8274489cbf56"
+    },
+    {
+      "path": "prompts/portrait/portrait-joint-0p5.json",
+      "bytes": 3300,
+      "sha256": "f0e8f7dfa777a1eb7f04f05744679104a4e39a0d7c910c3cb946b32a8222d84d"
+    },
+    {
+      "path": "prompts/portrait/portrait-joint-1.json",
+      "bytes": 3294,
+      "sha256": "e25dfd8f72eab2a78eaa704425cb2ea7faea1e4da9d5271beac98c01118ccd50"
+    },
+    {
+      "path": "prompts/portrait/portrait-joint-2.json",
+      "bytes": 3294,
+      "sha256": "f789727039196eca7ed02553a3a08a105af93e11364d5751d0862aba2f6d0cf5"
+    },
+    {
+      "path": "prompts/portrait/portrait-preserve_text_mass-0.json",
+      "bytes": 3333,
+      "sha256": "c17a3453291c76c3cd6e73c82bfc6225fc02d8da7480ecf739f592ecfd7e4fdb"
+    },
+    {
+      "path": "prompts/portrait/portrait-preserve_text_mass-0p05.json",
+      "bytes": 3342,
+      "sha256": "846861a6cd2e1c9eb959a9cc259ac1d57135447fb171d6714432705d44b3153e"
+    },
+    {
+      "path": "prompts/portrait/portrait-preserve_text_mass-0p2.json",
+      "bytes": 3339,
+      "sha256": "c457687dff3c76411ca5c52d26bdc1d14b38f496fcfabc11db5004bff28e98a3"
+    },
+    {
+      "path": "prompts/portrait/portrait-preserve_text_mass-0p5.json",
+      "bytes": 3339,
+      "sha256": "1501689f69afada59d56b1034b593ff5c1ece47d6c535c91aa7a10cec8585582"
+    },
+    {
+      "path": "prompts/portrait/portrait-preserve_text_mass-1.json",
+      "bytes": 3333,
+      "sha256": "985292e779aedb7e0c1753ee665d0835ab7a2645335468dc4ef3d99ab3114972"
+    },
+    {
+      "path": "prompts/portrait/portrait-preserve_text_mass-2.json",
+      "bytes": 3333,
+      "sha256": "b07348c6b8bdd1c9e45086d3755ed172fe8a0a0e2167ea770c2f5f18e873cfdf"
+    },
+    {
+      "path": "prompts/smoke/attention-baseline-seed-20260930.json",
+      "bytes": 2884,
+      "sha256": "d1f81b8919286bab588913ed352049e855ff9ddac28721974e9c5a5c9957a9d8"
+    },
+    {
+      "path": "prompts/smoke/augmented-edit-005-seed-20260930.json",
+      "bytes": 2774,
+      "sha256": "ff4823bb96aaacb990279afb64fd456b84a8f921dd70e31c90bcf2ee69824529"
+    },
+    {
+      "path": "prompts/smoke/augmented-zero-seed-20260930.json",
+      "bytes": 2768,
+      "sha256": "dce6b6eeac68f8b75321a2537449a77b027fcc8b8c5cde3e4b131b10d7e8867b"
+    },
+    {
+      "path": "prompts/smoke/baseline-repeat-after-edits.json",
+      "bytes": 1713,
+      "sha256": "e981c917e88a7cdf569cc3e66a43286d7f67cf44ca541d3e2d3e2eb911bd5831"
+    },
+    {
+      "path": "prompts/smoke/baseline-smoke-seed-20260930.json",
+      "bytes": 1713,
+      "sha256": "e981c917e88a7cdf569cc3e66a43286d7f67cf44ca541d3e2d3e2eb911bd5831"
+    },
+    {
+      "path": "prompts/smoke/cfg-both.json",
+      "bytes": 2859,
+      "sha256": "4ea3e68957ffddffba7039cc0bcc334ce86f6b745b02dad4de65bbb552f64239"
+    },
+    {
+      "path": "prompts/smoke/cfg-negative.json",
+      "bytes": 2872,
+      "sha256": "5b1bb952b2ae1a56b3ec6b1e413184606e3b9f1a983daecb446288f5548ac978"
+    },
+    {
+      "path": "prompts/smoke/cfg-positive.json",
+      "bytes": 2872,
+      "sha256": "6293863c60bd6a45b63e64e207a7dfc7b656f26f9d9a0332a94009323d5c96f9"
+    },
+    {
+      "path": "prompts/smoke/discover-smoke-seed-20260930.json",
+      "bytes": 2772,
+      "sha256": "9706aabe19f354bc5e9f9cc8eecfe4267289c57ab54758a76e034b5e92f5fd7e"
+    },
+    {
+      "path": "prompts/smoke/joint-manual-005-seed-20260930.json",
+      "bytes": 2879,
+      "sha256": "4420130274e7fac0255b03f3f427aa95db16d7f88d937d9c54ecdf0b183ec4a4"
+    },
+    {
+      "path": "prompts/smoke/manual-edit-005-seed-20260930.json",
+      "bytes": 2768,
+      "sha256": "52e3bfc2c25d44bc51248eb131cee7b93d022c564f099aeb10407844b3503aef"
+    },
+    {
+      "path": "prompts/smoke/manual-zero-seed-20260930.json",
+      "bytes": 2759,
+      "sha256": "eafc8db51796d99b94f6bbc92a75efd1fac607ed821bc27f03e3b42fa5c55904"
+    },
+    {
+      "path": "prompts/smoke/multi-joint.json",
+      "bytes": 2858,
+      "sha256": "647ca5e7aa66eab2e13b9ef56fee9691cca5edca4dce71b37f1717708ddc3812"
+    },
+    {
+      "path": "prompts/smoke/multi-observe.json",
+      "bytes": 2863,
+      "sha256": "bdc29617fe2fef19ae771f88fdcdb5f90fc8700554609f0990b5e85c4b79bbdf"
+    },
+    {
+      "path": "prompts/smoke/multi-preserve-auto.json",
+      "bytes": 2877,
+      "sha256": "69d72583dc71d02a0c28729de70f816ae1240932ada885a98386a5d9301d0eb4"
+    },
+    {
+      "path": "prompts/smoke/multi-preserve-diag-off.json",
+      "bytes": 2879,
+      "sha256": "aa12a60264cb892553a6136521a93fbce03fa27b9a695d672e9094f08b978c27"
+    },
+    {
+      "path": "prompts/smoke/multi-preserve.json",
+      "bytes": 2874,
+      "sha256": "4f2958ea1d3b48b734a1a83f8c9b0431c3b58a3b977a0be9d0ef12f7c4ef7d8c"
+    },
+    {
+      "path": "prompts/smoke/observe-smoke-seed-20260930.json",
+      "bytes": 2769,
+      "sha256": "ca263a66695cc6948af98162163f7ab792a8cdc625ac0914c0bfe129a5de2c41"
+    },
+    {
+      "path": "prompts/smoke/off-seed-20260930.json",
+      "bytes": 2755,
+      "sha256": "fadf3412fee0445f163baf214303f9dcf4f73cd62f3801458084a07d24d5d9dc"
+    },
+    {
+      "path": "prompts/smoke/preserve-manual-005-seed-20260930.json",
+      "bytes": 2895,
+      "sha256": "c6149a22ab1c835c07fd72630fb7ddbffe47e227ed5f162c581d32344fd24dfc"
+    },
+    {
+      "path": "prompts/smoke/rectangle-preserve.json",
+      "bytes": 2878,
+      "sha256": "19de8dca4c519e885451dbfd42c3d5459bd53f71c28aa776d3b34291cfefd3df"
+    },
+    {
+      "path": "prompts/smoke/zero-original-seed-20260930.json",
+      "bytes": 2763,
+      "sha256": "c8f4bcc215b05928a22566be533e26429f31cc2553fc7f7c65b1ed37e8e4b2e3"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 99966,
+      "sha256": "daa24b62198d15afd75e7134c0358fdeab4625546942f6a134056e0d50c47bff"
+    },
+    {
+      "path": "user-observation.json",
+      "bytes": 859,
+      "sha256": "9307e3388eb88e5803252bd15c82e293b09ebafdbbc7b056210dff73a2105c43"
+    }
+  ]
+}

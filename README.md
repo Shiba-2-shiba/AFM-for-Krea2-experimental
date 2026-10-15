@@ -1,12 +1,12 @@
 # Krea2 AFM (experimental)
 
-**2026-10-15:** 総注意量保存モードと診断・実験ツールのリファクタリングを実装しました。ユーザー指定により今回の差分に対する検証は行っていません。以前のCPU PASS記録は今回の変更の保証ではありません。状態と後日の確認手順は[実装引き継ぎ](docs/refactoring-implementation-2026-10-15.md)を参照してください。
+**2026-10-15 検証:** 起動中ComfyUIと指定INT8モデルで、22生成条件・7拒否試験と人物26枚の強度比較を確認しました。回帰テストは342成功・19失敗のため、全体合格には未達です。確認範囲・失敗原因・証拠は[検証結果](docs/validation.md)を参照してください。
 
 ComfyUIのネイティブKrea2向けに、画像Query → テキストKeyのAttention logitsを
 空間周波数で編集するカスタムノードです。画像・テキストを合わせた全Keyで正規化します。
 Anima AFM / Krea2T Enhancerのインストールは不要です。
 
-**編集機能を実装済みです。実モデルによる生成・GPU性能・画質は未検証です。**
+**編集機能を実装済みです。指定INT8モデルで生成・編集適用・総注意量保存を確認しました。GPU性能・一般的な画質改善は未検証です。**
 CPUの小規模Tensorで、直接計算・分割manual・Q/K拡張augmentedの数値比較と
 CFG行保持・fallbackを検証しています。CPUでの一致は実モデル/GPUの保証ではありません。
 
@@ -34,6 +34,8 @@ V3ノード、OUTER_SAMPLE / DIFFUSION_MODEL wrapper、post_input、およびnat
 ノード既定は `observe`。編集を試す設定例は `mode=edit`, `implementation=manual`,
 `strength=0.05`, `block_scope=0`, `branch_mode=positive_only` です。
 最適設定や画質改善を確認した値ではありません。
+
+人物2構図・各1 seedの目視評価では、ユーザーは `preserve_text_mass / manual / strength=2.0 / block_scope=all` を好印象と評価しました。従来のjoint方式は構図が変わり、強度2.0では物体重複などの破綻が見られました。これは限定条件の探索結果で、既定値の変更や一般的改善の確認ではありません。[人物比較画像と検証記録](docs/validation.md#人物比較の観察と現時点の結論)を参照してください。
 
 | 設定 | 意味 |
 | --- | --- |
@@ -91,7 +93,7 @@ V3ノード、OUTER_SAMPLE / DIFFUSION_MODEL wrapper、post_input、およびnat
   [edit](examples/krea2_afm_edit_api.json)。API JSONはUI形式ではありません。
 
 公式Turbo構成を基に、512×512、固定seed、8 steps、CFG=1、Euler/simpleで用意しました。
-モデル名を実際のファイル名に合わせてください。実サーバー・ブラウザーへのロードと生成は未検証です。
+モデル名を実際のファイル名に合わせてください。指定モデルに置換したAPIの実サーバー生成を確認しました。ブラウザーでのUIロード・再保存は未検証です。
 
 ```console
 python scripts/validate_workflow.py examples/krea2_afm_edit_api.json
@@ -100,7 +102,7 @@ python scripts/run_afm_matrix.py --comfy-url http://127.0.0.1:8188 --matrix exam
 ```
 
 最後のコマンドも既定はdry-runで、prompt/manifestを保存するだけです。
-後日、実際に生成する場合に限り `--execute` を追加します。今回は生成を実行していません。
+生成するには `--execute` を追加します。今回の環境では付属runnerのHTTP取得が失敗し、別transportで同じpromptを実行しました。詳細は検証結果を参照してください。
 
 runnerは呼び出しごとの `invocation_id` をmanifestへ記録し、AFMログを
 `krea2_afm/<条件ID>-<invocation_id>.jsonl` に保存するようpromptへ設定します。
@@ -117,7 +119,7 @@ python -m compileall -q afm nodes.py __init__.py scripts
 
 4D latent・単一フレーム5D・長方形を扱います。reference連結、複数フレーム、他Attention
  override/post_input/QKV/outputパッチは拒否します。複数GPUとtorch.compileは対象外です。
-FP8/INT8・Turbo/Raw・LoRA・img2imgの実機動作は未確認です。
+今回確認したのは指定INT8モデルとBF16 attentionの限定構成です。他の量子化・Turbo/Rawモデル・LoRA・img2imgの実機動作は未確認です。
 
 詳しい手順は [検証文書](docs/validation.md)、実装記録は
 [実装状況](docs/implementation-status.md)、出典とライセンスは [NOTICE](NOTICE.md) を参照してください。

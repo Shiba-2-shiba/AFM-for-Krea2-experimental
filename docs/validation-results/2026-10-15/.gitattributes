@@ -1,0 +1,4 @@
+*.json text eol=lf
+*.log text eol=lf
+.gitattributes text eol=lf
+comparisons/*.png binary

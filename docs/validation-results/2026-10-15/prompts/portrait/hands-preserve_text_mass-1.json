@@ -1,0 +1,140 @@
+{
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "20",
+        0
+      ],
+      "seed": 20261016,
+      "steps": 8,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "13",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ],
+      "denoise": 1
+    }
+  },
+  "5": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 512,
+      "height": 768,
+      "batch_size": 1
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "11",
+        0
+      ],
+      "text": "A realistic photographic waist-up portrait of a 35-year-old Japanese man seated at a wooden cafe table, short slightly wavy black hair, warm brown eyes, natural skin texture, looking at the camera with a relaxed expression. Wearing a textured navy blue cardigan over a light gray shirt. His right hand holds the handle of a red ceramic mug on the table, and his left hand rests flat on the table with relaxed fingers. Both hands are fully visible. Soft natural window light from the left, a softly blurred cafe interior, realistic colors, candid editorial photography."
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ]
+    }
+  },
+  "10": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "intorealismAsian_k2JAVFLASHV1.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "11": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+      "type": "krea2",
+      "device": "default"
+    }
+  },
+  "12": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "13": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": [
+        "6",
+        0
+      ]
+    }
+  },
+  "20": {
+    "class_type": "Krea2AFMModelPatch",
+    "inputs": {
+      "mode": "edit",
+      "block_scope": "all",
+      "branch_mode": "positive_only",
+      "start_percent": 0,
+      "end_percent": 1,
+      "fail_mode": "raise",
+      "debug_level": "summary",
+      "jsonl_path": "krea2_afm/portrait-1792074253219-hands-preserve_text_mass-1.jsonl",
+      "strength": 1,
+      "implementation": "manual",
+      "cutoff": 0.25,
+      "schedule": "curve",
+      "preserve_dc": true,
+      "soft_mask": true,
+      "mask_width": 0.05,
+      "zero_strength_mode": "manual",
+      "head_chunk_size": 8,
+      "query_chunk_size": 128,
+      "max_workspace_mib": 512,
+      "augmented_precision": "activation",
+      "spectral_diag": "sampled",
+      "diagnostic_block_scope": "14",
+      "diagnostic_every_n_steps": 4,
+      "diagnostic_head_limit": 1,
+      "diagnostic_query_chunk_size": 128,
+      "diagnostic_top_k": 8,
+      "compare_kernels": false,
+      "benchmark": false,
+      "model": [
+        "10",
+        0
+      ],
+      "normalization_mode": "preserve_text_mass",
+      "diagnostic_head_indices": "16,32",
+      "diagnostic_radial_bins": 32
+    }
+  },
+  "29": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ],
+      "filename_prefix": "krea2_afm/portrait-1792074253219/hands-preserve_text_mass-1"
+    }
+  }
+}

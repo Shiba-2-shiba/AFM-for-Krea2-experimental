@@ -1,0 +1,184 @@
+...............FF...............F....................................... [ 19%]
+........................................FF..FF...FF..................... [ 39%]
+..............F....F...................F................................ [ 59%]
+.FFFF....................F.............................................. [ 79%]
+.................F...............................................F...... [ 99%]
+.                                                                        [100%]
+================================== FAILURES ===================================
+_ test_augmented_shared_validation_rejects_incompatible_qkv[<lambda>-shape|head] _
+tests\test_augmented_attention.py:196: in test_augmented_shared_validation_rejects_incompatible_qkv
+    augmented_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
+afm\augmented_attention.py:72: in augmented_image_rows
+    batch, heads, _, dim = validate_joint_inputs(
+afm\attention_math.py:13: in validate_joint_inputs
+    raise AFMUnsupportedError("unsupported_layout", "QKV must share [B,H,N,d]")
+E   afm.runtime.AFMUnsupportedError: unsupported_layout: QKV must share [B,H,N,d]
+
+During handling of the above exception, another exception occurred:
+tests\test_augmented_attention.py:195: in test_augmented_shared_validation_rejects_incompatible_qkv
+    with pytest.raises((AFMUnsupportedError, ValueError, TypeError), match=reason):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'shape|head'
+E     Actual message: 'unsupported_layout: QKV must share [B,H,N,d]'
+__ test_augmented_shared_validation_rejects_incompatible_qkv[<lambda>-dtype] __
+tests\test_augmented_attention.py:196: in test_augmented_shared_validation_rejects_incompatible_qkv
+    augmented_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
+afm\augmented_attention.py:109: in augmented_image_rows
+    output = F.scaled_dot_product_attention(
+E   RuntimeError: Expected query, key, and value to have the same dtype, but got query.dtype: float key.dtype: float and value.dtype: double instead.
+_____ test_preserve_diagnostics_include_schema_and_physical_head_mapping ______
+tests\test_backend.py:199: in test_preserve_diagnostics_include_schema_and_physical_head_mapping
+    assert options[RUN_KEY].reasons["normalization_requires_manual"] == 1
+E   assert 0 == 1
+_ test_manual_shared_validation_rejects_incompatible_qkv[<lambda>-shape|head] _
+tests\test_joint_attention.py:100: in test_manual_shared_validation_rejects_incompatible_qkv
+    joint_image_rows(q, k, v, layout, config, progress, chunks, 0.2)
+afm\joint_attention.py:29: in joint_image_rows
+    batch, heads, tokens, dim = validate_joint_inputs(q, k, v, layout, chunks, scale, "manual")
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+afm\attention_math.py:13: in validate_joint_inputs
+    raise AFMUnsupportedError("unsupported_layout", "QKV must share [B,H,N,d]")
+E   afm.runtime.AFMUnsupportedError: unsupported_layout: QKV must share [B,H,N,d]
+
+During handling of the above exception, another exception occurred:
+tests\test_joint_attention.py:99: in test_manual_shared_validation_rejects_incompatible_qkv
+    with pytest.raises((AFMUnsupportedError, ValueError, TypeError), match=reason):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'shape|head'
+E     Actual message: 'unsupported_layout: QKV must share [B,H,N,d]'
+___ test_manual_shared_validation_rejects_incompatible_qkv[<lambda>-dtype] ____
+tests\test_joint_attention.py:99: in test_manual_shared_validation_rejects_incompatible_qkv
+    with pytest.raises((AFMUnsupportedError, ValueError, TypeError), match=reason):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'afm.runtime.AFMUnsupportedError'>, <class 'ValueError'>, <class 'TypeError'>)
+__________ test_manual_shared_validation_rejects_invalid_scale[0.0] ___________
+tests\test_joint_attention.py:106: in test_manual_shared_validation_rejects_invalid_scale
+    with pytest.raises((AFMUnsupportedError, ValueError), match="scale"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'afm.runtime.AFMUnsupportedError'>, <class 'ValueError'>)
+__________ test_manual_shared_validation_rejects_invalid_scale[-0.1] __________
+tests\test_joint_attention.py:106: in test_manual_shared_validation_rejects_invalid_scale
+    with pytest.raises((AFMUnsupportedError, ValueError), match="scale"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE any of (<class 'afm.runtime.AFMUnsupportedError'>, <class 'ValueError'>)
+____________ test_partition_correction_requires_fp32_inputs[bad0] _____________
+tests\test_mass_preservation.py:74: in test_partition_correction_requires_fp32_inputs
+    preserve_text_partition(edited, partition)
+afm\attention_math.py:63: in preserve_text_partition
+    raise ValueError("text partition correction requires same-device FP32 tensors")
+E   ValueError: text partition correction requires same-device FP32 tensors
+
+During handling of the above exception, another exception occurred:
+tests\test_mass_preservation.py:73: in test_partition_correction_requires_fp32_inputs
+    with pytest.raises((TypeError, ValueError), match="float32"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'float32'
+E     Actual message: 'text partition correction requires same-device FP32 tensors'
+____________ test_partition_correction_requires_fp32_inputs[bad1] _____________
+tests\test_mass_preservation.py:74: in test_partition_correction_requires_fp32_inputs
+    preserve_text_partition(edited, partition)
+afm\attention_math.py:63: in preserve_text_partition
+    raise ValueError("text partition correction requires same-device FP32 tensors")
+E   ValueError: text partition correction requires same-device FP32 tensors
+
+During handling of the above exception, another exception occurred:
+tests\test_mass_preservation.py:73: in test_partition_correction_requires_fp32_inputs
+    with pytest.raises((TypeError, ValueError), match="float32"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: 'float32'
+E     Actual message: 'text partition correction requires same-device FP32 tensors'
+_______ test_execute_collects_only_images_from_requested_prompt_history _______
+tests\test_matrix_runner.py:201: in test_execute_collects_only_images_from_requested_prompt_history
+    assert result == 0
+E   assert 2 == 0
+---------------------------- Captured stdout call -----------------------------
+C:\ComfyUI\custom_nodes\AFM-for-Krea2-experimental\outputs\validation-20261015\commit-pytest-temp-01\test_execute_collects_only_ima0\out\manifest.json
+______________ test_execute_links_each_run_to_its_own_mapped_log ______________
+tests\test_matrix_runner.py:380: in test_execute_links_each_run_to_its_own_mapped_log
+    assert main(["--comfy-url", "http://comfy.invalid", "--matrix", str(matrix_path),
+E   AssertionError: assert 2 == 0
+E    +  where 2 = main(['--comfy-url', 'http://comfy.invalid', '--matrix', 'C:\\ComfyUI\\custom_nodes\\AFM-for-Krea2-experimental\\outputs\\v...or-Krea2-experimental\\outputs\\validation-20261015\\commit-pytest-temp-01\\test_execute_links_each_run_to0\\out', ...], opener=<function test_execute_links_each_run_to_its_own_mapped_log.<locals>.opener at 0x000002682FE3E660>)
+---------------------------- Captured stdout call -----------------------------
+C:\ComfyUI\custom_nodes\AFM-for-Krea2-experimental\outputs\validation-20261015\commit-pytest-temp-01\test_execute_links_each_run_to0\out\manifest.json
+_ test_explicit_diagnostic_heads_are_counted_independently_of_kernel_head_chunk _
+tests\test_memory.py:191: in test_explicit_diagnostic_heads_are_counted_independently_of_kernel_head_chunk
+    assert selected_plan.estimated_workspace_mib > one_plan.estimated_workspace_mib
+E   AssertionError: assert 0.08544921875 > 0.08544921875
+E    +  where 0.08544921875 = ChunkPlan(head_chunk_size=1, query_chunk_size=16, estimated_workspace_mib=0.08544921875, implementation='manual').estimated_workspace_mib
+E    +  and   0.08544921875 = ChunkPlan(head_chunk_size=1, query_chunk_size=16, estimated_workspace_mib=0.08544921875, implementation='manual').estimated_workspace_mib
+____________ test_spectral_metrics_match_independent_fp64_dft[16] _____________
+tests\test_observation.py:101: in test_spectral_metrics_match_independent_fp64_dft
+    assert actual["rho_text_raw"] == pytest.approx(raw, abs=1e-10)
+E   assert 0.0205718280235003 == 0.02057182705718271 �} 1.0e-10
+E
+E     comparison failed
+E     Obtained: 0.0205718280235003
+E     Expected: 0.02057182705718271 �} 1.0e-10
+____________ test_spectral_metrics_match_independent_fp64_dft[32] _____________
+tests\test_observation.py:101: in test_spectral_metrics_match_independent_fp64_dft
+    assert actual["rho_text_raw"] == pytest.approx(raw, abs=1e-10)
+E   assert 0.0205718280235003 == 0.02057182705718271 �} 1.0e-10
+E
+E     comparison failed
+E     Obtained: 0.0205718280235003
+E     Expected: 0.02057182705718271 �} 1.0e-10
+____________ test_spectral_metrics_match_independent_fp64_dft[64] _____________
+tests\test_observation.py:101: in test_spectral_metrics_match_independent_fp64_dft
+    assert actual["rho_text_raw"] == pytest.approx(raw, abs=1e-10)
+E   assert 0.0205718280235003 == 0.02057182705718271 �} 1.0e-10
+E
+E     comparison failed
+E     Obtained: 0.0205718280235003
+E     Expected: 0.02057182705718271 �} 1.0e-10
+______ test_checkerboard_regression_separates_raw_dc_from_centered_power ______
+tests\test_observation.py:116: in test_checkerboard_regression_separates_raw_dc_from_centered_power
+    assert metrics["rho_text_raw"] == pytest.approx(3.83e-6, rel=0.03)
+E   assert 9.593400538400674e-07 == 3.83e-06 �} 1.1e-07
+E
+E     comparison failed
+E     Obtained: 9.593400538400674e-07
+E     Expected: 3.83e-06 �} 1.1e-07
+_______ test_runtime_jsonl_is_grouped_by_run_and_maps_server_benchmark ________
+tests\test_reports.py:244: in test_runtime_jsonl_is_grouped_by_run_and_maps_server_benchmark
+    assert reports[0]["benchmark"]["manual"][0]["generation_seconds"] == 2.0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IndexError: list index out of range
+_____________ test_preserve_auto_ignores_qualified_joint_profile ______________
+tests\test_selection.py:54: in test_preserve_auto_ignores_qualified_joint_profile
+    assert choice.implementation == "manual"
+E   AssertionError: assert 'augmented' == 'manual'
+E
+E     - manual
+E     + augmented
+_______________ test_legacy_fixture_bytes_are_pinned_to_944e507 _______________
+tests\test_workflows.py:48: in test_legacy_fixture_bytes_are_pinned_to_944e507
+    assert hashlib.sha256((LEGACY / name).read_bytes()).hexdigest() == expected
+E   AssertionError: assert '2765d6b228d0...b9f9c7f8efc63' == '06207cbf5e81...aa833a33f24be'
+E
+E     - 06207cbf5e81a292e39f7ca32f7d71e47321a75bedbcd307613aa833a33f24be
+E     + 2765d6b228d027cb3a1ea6e94307ee2ebf3ba0926596bafe08fb9f9c7f8efc63
+=========================== short test summary info ===========================
+FAILED tests/test_augmented_attention.py::test_augmented_shared_validation_rejects_incompatible_qkv[<lambda>-shape|head]
+FAILED tests/test_augmented_attention.py::test_augmented_shared_validation_rejects_incompatible_qkv[<lambda>-dtype]
+FAILED tests/test_backend.py::test_preserve_diagnostics_include_schema_and_physical_head_mapping
+FAILED tests/test_joint_attention.py::test_manual_shared_validation_rejects_incompatible_qkv[<lambda>-shape|head]
+FAILED tests/test_joint_attention.py::test_manual_shared_validation_rejects_incompatible_qkv[<lambda>-dtype]
+FAILED tests/test_joint_attention.py::test_manual_shared_validation_rejects_invalid_scale[0.0]
+FAILED tests/test_joint_attention.py::test_manual_shared_validation_rejects_invalid_scale[-0.1]
+FAILED tests/test_mass_preservation.py::test_partition_correction_requires_fp32_inputs[bad0]
+FAILED tests/test_mass_preservation.py::test_partition_correction_requires_fp32_inputs[bad1]
+FAILED tests/test_matrix_runner.py::test_execute_collects_only_images_from_requested_prompt_history
+FAILED tests/test_matrix_runner.py::test_execute_links_each_run_to_its_own_mapped_log
+FAILED tests/test_memory.py::test_explicit_diagnostic_heads_are_counted_independently_of_kernel_head_chunk
+FAILED tests/test_observation.py::test_spectral_metrics_match_independent_fp64_dft[16]
+FAILED tests/test_observation.py::test_spectral_metrics_match_independent_fp64_dft[32]
+FAILED tests/test_observation.py::test_spectral_metrics_match_independent_fp64_dft[64]
+FAILED tests/test_observation.py::test_checkerboard_regression_separates_raw_dc_from_centered_power
+FAILED tests/test_reports.py::test_runtime_jsonl_is_grouped_by_run_and_maps_server_benchmark
+FAILED tests/test_selection.py::test_preserve_auto_ignores_qualified_joint_profile
+FAILED tests/test_workflows.py::test_legacy_fixture_bytes_are_pinned_to_944e507
+19 failed, 342 passed, 1 deselected in 6.50s

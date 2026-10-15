@@ -173,3 +173,15 @@ outside this review. Work is retained locally on `feat/krea2-afm-edit`.
 ## 2026-10-15 refactoring implementation — UNVERIFIED
 
 The user explicitly deferred verification for this implementation turn. T0–T5 source/test/tooling changes are recorded in `refactoring-implementation-2026-10-15.md`. No tests, compilation, lint, typecheck, workflow dry-run, server/UI, model/GPU, performance validation or independent code review was executed for this diff. Prior 241-pass evidence applies to pre-refactor HEAD 944e507 only. T6–T8 and all validation gates remain pending.
+
+## 2026-10-15 live verification — regression gate FAILED
+
+User-selected intorealismAsian_k2JAVFLASHV1.safetensors was tested on the already-running ComfyUI 0.37.0 / ROCm host. 22 generation conditions and 7 expected-rejection checks completed, and baseline recovery after exceptions succeeded. Multi-block/head mass preservation stayed within 1e-5. Both Python environments reproduced 342 passed, 19 failed, 1 GPU test deselected. No product/test fixes were made. UI, full T6 matrix, T7 efficacy, T8 performance/profile qualification and independent reviewer approval remain incomplete. See [current verification evidence and findings](validation.md).
+
+## Portrait sweep and user observation (2026-10-15)
+
+- Completed 26 images across two person compositions: original baseline plus manual joint/preserve strengths 0/.05/.2/.5/1/2, all 28 blocks, fixed seed per composition. Every editing run recorded 224 edits with zero fallback/NaN/OOM.
+- User qualitatively preferred preserve_text_mass and considered strength about 2 necessary. Joint changed composition and strength 2 introduced breakage, including duplicated cups. Treat preserve/manual/2/all as an exploratory candidate only; defaults and qualified profiles remain unchanged.
+- Strength 1/1.5/2 across multiple seeds is a proposed follow-up, not executed work.
+- Fresh precommit regression reproduced 342 passed, 19 failed, 1 deselected. This documentation commit does not fix those failures or claim merge readiness.
+- Portable evidence, 48 exact submitted prompts, five representative comparison PNGs, regression logs and user observations are stored under [validation-results/2026-10-15](validation-results/2026-10-15/). Full raw artifacts and evaluation HTML remain in ignored local outputs.
