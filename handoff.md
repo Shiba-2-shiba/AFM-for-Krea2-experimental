@@ -1,6 +1,16 @@
 # Krea2 AFM 実装の引き継ぎ
 
-**最新: 2026-10-15** — リファクタリング実装とテストコードを追加し、ユーザー指定により検証は未実施です。[今回の実装引き継ぎ](docs/refactoring-implementation-2026-10-15.md)を先に参照してください。以下のPASS・レビュー記録は2026-09-30の旧実装に対する履歴です。
+**最新: 2026-10-16 — 検証・実装方針の切り替え**
+
+今後は[効果確認・層／編集区間比較の計画](docs/superpowers/plans/2026-10-16-afm-scope-window-validation.md)を正本とします。ユーザー指定の `Krea2_AFM_Validation_Implementation_Plan_2026-10-16.md` を内容変更なしでリポジトリ内へ格納しました。以下の旧引き継ぎ・実績は履歴として残します。
+
+- 適用時に確認したHEADは `3c1adb2994f957082afcad3d57377f0e007da8e1`、branchは `feat/krea2-afm-edit`。更新前の作業ツリーはcleanで、計画書の基準と一致します。
+- 方針は現行80画像Pilot、明示選択のneutral対照16画像、層×編集区間の200画像探索、独立確認の順です。変更量制限を追加せず、既存AFM演算・CFG=1・全8ステップ・元のsigma列とcurveを維持します。各editの主対照は同じscope／windowのmanual zeroです。
+- 今回実施したのは計画書格納とREADME・旧実機計画・本引き継ぎの参照更新です。T0–T6は未着手で、新CLI・matrix・盲検評価・比較集計の追加は未実施です。チェックボックスは更新していません。
+- 次の実装はT0から開始し、HEAD／dirty diff／Python・torchの再取得、分離環境の準備、既存CPU suite・compile、scope／window契約の回帰化を行います。その後T1–T6へ進め、CPU／mock・送信なしdry-runまでを検証します。
+- 今回はCPUテストを再実行していません。GPU実験、モデル取得、サーバー再起動、既定値・profile更新、commit・pushは行っていません。GPU段階の配備・来歴・接続gateは[従来の実機検証手順](docs/hardware-validation-plan-2026-10-15.md)を継承します。
+
+**2026-10-15時点の引き継ぎ** — リファクタリング実装とテストコードを追加し、ユーザー指定により検証は未実施です。[今回の実装引き継ぎ](docs/refactoring-implementation-2026-10-15.md)を先に参照してください。以下のPASS・レビュー記録は2026-09-30の旧実装に対する履歴です。
 
 
 更新日: 2026-09-30。再開作業を完了。Task 0–4とTask 5のオフラインツールは実装済みです。
